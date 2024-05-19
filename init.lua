@@ -91,13 +91,20 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed and selected in the terminal
-vim.g.have_nerd_font = true
+vim.g.have_nerd_font = true -- <CUSTOM CHANGE>
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
 
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' }) -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+-- vim.keymap.set('n', '<C-k>', '<cmd>cnext<CR>zz') -- <CUSTOM CHANGE>
+-- vim.keymap.set('n', '<C-j>', '<cmd>cprev<CR>zz') -- <CUSTOM CHANGE>
+
+vim.opt.colorcolumn = '80' -- <CUSTOM CHANGE>
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -159,6 +166,7 @@ vim.opt.scrolloff = 10
 
 -- Set highlight on search, but clear on pressing <Esc> in normal mode
 vim.opt.hlsearch = true
+-- vim.opt.incsearch = true -- <CUSTOM CHANGE>
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 -- Diagnostic keymaps
@@ -174,6 +182,9 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv") -- <CUSTOM CHANGE>
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv") -- <CUSTOM CHANGE>
 
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -785,6 +796,10 @@ require('lazy').setup({
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
 
+      -- The following sets a transparent background
+      -- vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' }) -- <CUSTOM CHANGE>
+      -- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' }) -- <CUSTOM CHANGE>
+
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
     end,
@@ -834,7 +849,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'python', 'vim', 'vimdoc' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
