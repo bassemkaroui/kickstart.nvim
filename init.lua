@@ -171,8 +171,15 @@ vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the sear
 vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv") -- <CUSTOM CHANGE>
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv") -- <CUSTOM CHANGE>
--- vim.keymap.set('n', '<C-k>', '<cmd>cnext<CR>zz') -- <CUSTOM CHANGE>
--- vim.keymap.set('n', '<C-j>', '<cmd>cprev<CR>zz') -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'J', 'mzJ`z') --<CUSTOM CHANGE>
+vim.keymap.set('x', '<leader>p', '"_dP') --<CUSTOM CHANGE>
+vim.keymap.set('v', '<leader>d', '"_d') --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]]) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>x<leader>', '<cmd>!chmod +x %<CR>', { desc = 'Make the file executable', silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>ta', function()
+  vim.opt.relativenumber = not vim.opt.relativenumber:get()
+  vim.opt.number = true
+end, { noremap = true, silent = true, desc = '[T]oggle to [a]bsolute numbers' }) --<CUSTOM CHANGE>
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
@@ -345,6 +352,7 @@ require('lazy').setup({
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      'folke/todo-comments.nvim',
     },
     config = function()
       -- Telescope is a fuzzy finder that comes with a lot of different things that
@@ -401,6 +409,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+      vim.keymap.set('n', '<leader>st', '<cmd>TodoTelescope<CR>', { desc = '[S]earch [T]odo comments' }) --<CUSTOM CHANGE>
 
       -- Slightly advanced example of overriding default behavior and theme
       vim.keymap.set('n', '<leader>/', function()
@@ -585,6 +594,10 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- pyright = {},
+        isort = {},
+        black = {},
+        -- ruff = {},
+        -- ruff_lsp = {},
         bashls = {},
         pylsp = {},
         ansiblels = {},
@@ -620,7 +633,7 @@ require('lazy').setup({
                 callSnippet = 'Replace',
               },
               -- You can toggle below to ignore Lua_LS's noisy `missing-fields` warnings
-              -- diagnostics = { disable = { 'missing-fields' } },
+              diagnostics = { disable = { 'missing-fields' } },
             },
           },
         },
@@ -685,8 +698,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
+        python = { 'isort', 'black' },
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },
@@ -729,6 +741,7 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'kristijanhusak/vim-dadbod-completion',
     },
     config = function()
       -- See `:help cmp`
@@ -772,7 +785,7 @@ require('lazy').setup({
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
           --  completions whenever it has completion options available.
-          ['<C-Space>'] = cmp.mapping.complete {},
+          ['<A-c>'] = cmp.mapping.complete {}, --<CUSTOM CHANGE>
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:
@@ -800,6 +813,7 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
+          { name = 'vim-dadbod-completion' },
         },
       }
     end,
@@ -817,10 +831,6 @@ require('lazy').setup({
       -- Like many other themes, this one has different styles, and you could load
       -- any other, such as 'tokyonight-storm', 'tokyonight-moon', or 'tokyonight-day'.
       vim.cmd.colorscheme 'tokyonight-night'
-
-      -- The following sets a transparent background
-      -- vim.api.nvim_set_hl(0, 'Normal', { bg = 'none' }) -- <CUSTOM CHANGE>
-      -- vim.api.nvim_set_hl(0, 'NormalFloat', { bg = 'none' }) -- <CUSTOM CHANGE>
 
       -- You can configure highlights by doing something like:
       vim.cmd.hi 'Comment gui=none'
@@ -871,7 +881,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'python', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'c', 'diff', 'json', 'yaml', 'html', 'lua', 'luadoc', 'markdown', 'python', 'vim', 'vimdoc', 'dockerfile', 'sql' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
