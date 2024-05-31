@@ -600,6 +600,7 @@ require('lazy').setup({
         -- ruff_lsp = {},
         bashls = {},
         pylsp = {},
+        debugpy = {},
         ansiblels = {},
         docker_compose_language_service = {},
         dockerls = {},
@@ -813,9 +814,15 @@ require('lazy').setup({
           { name = 'nvim_lsp' },
           { name = 'luasnip' },
           { name = 'path' },
-          { name = 'vim-dadbod-completion' },
         },
       }
+      -- Setup up vim-dadbod completion
+      cmp.setup.filetype({ 'sql' }, {
+        sources = {
+          { name = 'vim-dadbod-completion' },
+          { name = 'buffer' },
+        },
+      })
     end,
   },
 

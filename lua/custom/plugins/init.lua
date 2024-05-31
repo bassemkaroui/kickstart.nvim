@@ -25,7 +25,7 @@ return {
     init = function()
       require('which-key').register {
         ['<leader>n'] = {
-          name = 'Neogit and notifications',
+          name = '[N]eogit and [n]otifications',
           s = { '<cmd>Neogit<CR>', 'git status' },
           f = { '<cmd>Neogit kind=floating<CR>', 'git status in floating mode' },
           c = { '<cmd>Neogit commit<CR>', 'git commit' },
@@ -285,6 +285,7 @@ return {
       vim.g.db_ui_show_help = 0 -- for help just type '?'
       vim.g.db_ui_use_nvim_notify = 1
       vim.g.db_ui_win_position = 'left'
+      vim.g.db_ui_auto_execute_table_helpers = 1
 
       require('which-key').register {
         ['<leader>D'] = {
@@ -312,5 +313,78 @@ return {
     -- For postgres you need psql :
     --    sudo nala install -y postgresql-client postgresql-client-common
     --
+  },
+  -- Debugger
+  'nvim-neotest/nvim-nio',
+  {
+    'mfussenegger/nvim-dap',
+    keys = {
+      { '<leader>db', '<cmd>DapToggleBreakpoint<CR>', desc = 'Toggle debug breakpoint' },
+      { '<leader>dC', "<cmd>lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition : '))<CR>", desc = 'Set Conditional breakpoint' },
+      { '<leader>dc', '<cmd>DapContinue<CR>', desc = 'Dap continue' },
+      { '<leader>di', '<cmd>DapStepInto<CR>', desc = 'Dap step into' },
+      { '<leader>do', '<cmd>DapStepOut<CR>', desc = 'Dap step out' },
+      { '<leader>dn', '<cmd>DapStepOver<CR>', desc = 'Dap step over' },
+    },
+    init = function()
+      vim.fn.sign_define('DapBreakpoint', { text = '🔴', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+      vim.fn.sign_define('DapBreakpointCondition', { text = 'ﳁ', texthl = 'DapBreakpoint', linehl = 'DapBreakpoint', numhl = 'DapBreakpoint' })
+    end,
+  },
+  {
+    'rcarriga/nvim-dap-ui',
+    dependencies = {
+      'mfussenegger/nvim-dap',
+      'nvim-neotest/nvim-nio',
+    },
+    config = function()
+      local dap = require 'dap'
+      local dapui = require 'dapui'
+      dapui.setup()
+      dap.listeners.after.event_initialized['dapui_config'] = function()
+        dapui.open()
+      end
+      dap.listeners.before.event_terminated['dapui_config'] = function()
+        dapui.close()
+      end
+      dap.listeners.before.event_exited['dapui_config'] = function()
+        dapui.close()
+      end
+      vim.keymap.set('n', '<leader>dt', "<cmd>lua require('dapui').toggle()<CR>", { desc = 'DapUI Toggle' })
+      vim.keymap.set('n', '<leader>dr', "<cmd>lua require('dapui').open({reset = true})<CR>", { desc = 'Reset DapUI' })
+      vim.keymap.set(
+        'n',
+        '<leader>df',
+        "<cmd>lua require('dapui').float_element(_, {height=40, width=50, position='center'})<CR>",
+        { desc = 'Open element in a floating window' }
+      )
+      vim.keymap.set('n', '<leader>ht', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
+    end,
+    -- keys = {
+    --   { '<leader>dt', ':DapUiToggle<CR>', desc = 'DapUI Toggle' },
+    --   { '<leader>dr', ":lua require('dapui').open({reset = true})<CR>", desc = 'Reset DapUI' },
+    --   { '<leader>ht', ":lua require('harpoon.ui').toggle_quick_menu()<CR>", desc = 'Toggle DapUI in Harpoon' },
+    -- },
+  },
+  {
+    'theHamsta/nvim-dap-virtual-text',
+    config = function()
+      require('nvim-dap-virtual-text').setup()
+    end,
+  },
+  {
+    'mfussenegger/nvim-dap-python',
+    ft = 'python',
+    dependencies = {
+      'mfussenegger/nvim-dap',
+      'rcarriga/nvim-dap-ui',
+      'nvim-neotest/nvim-nio',
+    },
+    config = function(_, opts)
+      local path = '~/.local/share/nvim/mason/packages/debugpy/venv/bin/python'
+      require('dap-python').setup(path)
+      vim.keymap.set('n', '<leader>dpm', "<cmd>lua require('dap-python').test_method()<CR>", { desc = 'Debug python method' })
+      vim.keymap.set('n', '<leader>dpc', "<cmd>lua require('dap-python').test_class()<CR>", { desc = 'Debug python class' })
+    end,
   },
 }
