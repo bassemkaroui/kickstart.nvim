@@ -180,6 +180,11 @@ vim.keymap.set('n', '<leader>ta', function()
   vim.opt.relativenumber = not vim.opt.relativenumber:get()
   vim.opt.number = true
 end, { noremap = true, silent = true, desc = '[T]oggle to [a]bsolute numbers' }) --<CUSTOM CHANGE>
+vim.keymap.set('i', 'jj', '<Esc>') --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true }) --<CUSTOM CHANGE>
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
