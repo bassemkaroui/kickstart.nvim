@@ -99,7 +99,7 @@ vim.g.have_nerd_font = true -- <CUSTOM CHANGE>
 --  For more options, you can see `:help option-list`
 
 -- Hightlight a column, good to know if you reached 80 characters for example
-vim.opt.colorcolumn = '80' -- <CUSTOM CHANGE>
+vim.opt.colorcolumn = '88' -- <CUSTOM CHANGE>
 -- Make line numbers default
 vim.opt.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -290,6 +290,7 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
+      current_line_blame = true,
     },
   },
 
@@ -599,12 +600,52 @@ require('lazy').setup({
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
         -- pyright = {},
-        isort = {},
-        black = {},
+        -- isort = {},
+        -- black = {},
+        -- pylint = {},
+        taplo = {},
         -- ruff = {},
         -- ruff_lsp = {},
         bashls = {},
-        pylsp = {},
+        pylsp = {
+          settings = {
+            configurationSources = { 'flake8' },
+            pylsp = {
+              plugins = {
+                pylsp_mypy = {
+                  enabled = true,
+                  live_mode = true,
+                  report_progress = true,
+                },
+                pylint = {
+                  enabled = true,
+                  args = {
+                    '--disable=C0111,C0103', -- Disable missing docstring and naming convention checks
+                    '--init-hook=from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))',
+                  },
+                },
+                pycodestyle = { enabled = false },
+                mccabe = { enabled = false },
+                pyflakes = { enabled = false },
+                flake8 = {
+                  enabled = true,
+                  maxLineLength = 88,
+                  ignore = { 'E203', 'W503', 'E701' }, -- Ignore whitespace before ':' and line break before binary operator
+                },
+                isort = {
+                  enabled = true,
+                  settings = {
+                    profile = 'black',
+                  },
+                },
+                black = {
+                  enabled = true,
+                  line_length = 88,
+                },
+              },
+            },
+          },
+        },
         debugpy = {},
         ansiblels = {},
         docker_compose_language_service = {},
@@ -673,6 +714,48 @@ require('lazy').setup({
           end,
         },
       }
+      -- -- Install python-lsp-black and python-lsp-isort when pylsp is attached
+      -- vim.api.nvim_create_autocmd('LspAttach', {
+      --   callback = function(args)
+      --     local client = vim.lsp.get_client_by_id(args.data.client_id)
+      --     if client.name == 'pylsp' then
+      --       vim.cmd 'PylspInstall python-lsp-black python-lsp-isort'
+      --     end
+      --   end,
+      -- })
+      -- Function to install required plugins
+      local function ensure_pylsp_plugins()
+        local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
+        if vim.fn.executable(vim.fn.expand(pip_path)) == 1 then
+          local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy' }
+          for _, plugin in ipairs(pylsp_plugins) do
+            local handle = io.popen(pip_path .. ' show ' .. plugin)
+            local result = handle:read '*a'
+            handle:close()
+            if result == '' then
+              vim.cmd('PylspInstall ' .. plugin)
+            end
+          end
+        end
+      end
+      -- Ensure the plugins are installed only once per session
+      local plugins_installed = false
+
+      local function install_plugins_once()
+        if not plugins_installed then
+          ensure_pylsp_plugins()
+          plugins_installed = true
+        end
+      end
+
+      vim.api.nvim_create_autocmd('LspAttach', {
+        callback = function(args)
+          local client = vim.lsp.get_client_by_id(args.data.client_id)
+          if client.name == 'pylsp' then
+            install_plugins_once()
+          end
+        end,
+      })
     end,
   },
 
@@ -704,7 +787,8 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        python = { 'isort', 'black' },
+        -- python = { 'isort', 'black' },
+        markdown = { 'inject' },
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
         -- javascript = { { "prettierd", "prettier" } },

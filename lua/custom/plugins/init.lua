@@ -24,8 +24,8 @@ return {
     },
     init = function()
       require('which-key').register {
-        ['<leader>n'] = {
-          name = '[N]eogit and [n]otifications',
+        ['<leader>g'] = {
+          name = '[G]it',
           s = { '<cmd>Neogit<CR>', 'git status' },
           f = { '<cmd>Neogit kind=floating<CR>', 'git status in floating mode' },
           c = { '<cmd>Neogit commit<CR>', 'git commit' },
@@ -90,7 +90,7 @@ return {
     --   }
     -- end,
     keys = {
-      { '<leader>sN', '<cmd>Telescope notify<CR>', desc = '[S]earch [N]otifications' },
+      { '<leader>na', '<cmd>Telescope notify<CR>', desc = 'Show [a]ll [n]otifications' },
     },
   },
   {
@@ -140,13 +140,29 @@ return {
   'tpope/vim-surround',
   {
     'folke/trouble.nvim',
-    dependencies = 'nvim-tree/nvim-web-devicons',
+    -- dependencies = 'nvim-tree/nvim-web-devicons',
+    opts = {}, -- for default options, refer to the configuration section for custom setup.
+    cmd = 'Trouble',
     keys = {
-      { '<leader>xx', '<cmd>TroubleToggle<CR>', desc = 'Open/close trouble list' },
-      { '<leader>xw', '<cmd>TroubleToggle workspace_diagnostics<CR>', desc = 'Open trouble workspace diagnostics' },
-      { '<leader>xd', '<cmd>TroubleToggle document_diagnostics<CR>', desc = 'Open trouble document diagnostics' },
-      { '<leader>xq', '<cmd>TroubleToggle quickfix<CR>', desc = 'Open trouble quickfix list' },
-      { '<leader>xl', '<cmd>TroubleToggle loclist<CR>', desc = 'Open trouble location list' },
+      { '<leader>xx', '<cmd>Trouble diagnostics toggle<CR>', desc = 'Open/close trouble list' },
+      { '<leader>xq', '<cmd>Trouble qflist toggle<CR>', desc = 'Open trouble quickfix list' },
+      { '<leader>xL', '<cmd>Trouble loclist toggle<CR>', desc = 'Open trouble location list' },
+      {
+        '<leader>cl',
+        '<cmd>Trouble lsp toggle focus=false win.position=right<cr>',
+        desc = 'LSP Definitions / references / ... (Trouble)',
+      },
+      {
+        '<leader>xb',
+        '<cmd>Trouble diagnostics toggle filter.buf=0<cr>',
+        desc = 'Buffer Diagnostics (Trouble)',
+      },
+      {
+        '<leader>cs',
+        '<cmd>Trouble symbols toggle focus=false<cr>',
+        desc = 'Symbols (Trouble)',
+      },
+
       { '<leader>xt', '<cmd>TodoTrouble<CR>', desc = 'Open todos in trouble' },
     },
   },
@@ -386,5 +402,111 @@ return {
       vim.keymap.set('n', '<leader>dpm', "<cmd>lua require('dap-python').test_method()<CR>", { desc = 'Debug python method' })
       vim.keymap.set('n', '<leader>dpc', "<cmd>lua require('dap-python').test_class()<CR>", { desc = 'Debug python class' })
     end,
+  },
+  {
+    'tpope/vim-fugitive',
+    keys = {
+      { '<leader>gd', '<CMD>Gvdiffsplit!<CR>', desc = 'Gvdiffsplit' },
+    },
+  },
+  {
+    'ThePrimeagen/git-worktree.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+    },
+    config = function()
+      require('git-worktree').setup()
+      require('telescope').load_extension 'git_worktree'
+
+      local Job = require 'plenary.job'
+
+      -- Define the custom function
+      local function create_git_worktree_and_configure()
+        -- Call the create_git_worktree function from the telescope extension
+        require('telescope').extensions.git_worktree.create_git_worktree()
+
+        -- Function to check and configure remote.origin.fetch
+        local function check_and_configure_fetch()
+          -- Check the current value of remote.origin.fetch
+          Job:new({
+            command = 'git',
+            args = { 'config', '--get', 'remote.origin.fetch' },
+            on_exit = function(j, return_val)
+              local output = table.concat(j:result(), '\n')
+              if output ~= '+refs/heads/*:refs/remotes/origin/*' then
+                -- Configure remote.origin.fetch if it's not set correctly
+                Job:new({
+                  command = 'git',
+                  args = { 'config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*' },
+                  on_exit = function(j, return_val)
+                    if return_val == 0 then
+                      print 'Successfully configured remote.origin.fetch'
+                    else
+                      print 'Failed to configure remote.origin.fetch'
+                    end
+                  end,
+                }):start()
+              else
+                print 'remote.origin.fetch is already configured correctly'
+              end
+            end,
+          }):start()
+        end
+
+        -- Call the function to check and configure fetch
+        check_and_configure_fetch()
+      end
+
+      -- Set the keymap
+      vim.keymap.set('n', '<Leader>gW', create_git_worktree_and_configure, { desc = 'Create a new worktree and configure fetch' })
+      vim.keymap.set('n', '<Leader>gw', "<CMD>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = 'Show git worktrees' })
+    end,
+  },
+  {
+    'mg979/vim-visual-multi',
+    branch = 'master',
+    -- config = function()
+    --   vim.g.VM_leader = '\t'
+    -- end,
+  },
+  -- f-strings
+  -- - auto-convert strings to f-strings when typing `{}` in a string
+  -- - also auto-converts f-strings back to regular strings when removing `{}`
+  {
+    'chrisgrieser/nvim-puppeteer',
+    dependencies = 'nvim-treesitter/nvim-treesitter',
+  },
+  -- Docstring creation
+  -- - quickly create docstrings via `<leader>a`
+  {
+    'danymat/neogen',
+    opts = true,
+    keys = {
+      {
+        '<leader>dg',
+        function()
+          require('neogen').generate()
+        end,
+        desc = 'Generate Docstring',
+      },
+    },
+  },
+  {
+    'linux-cultist/venv-selector.nvim',
+    dependencies = {
+      'neovim/nvim-lspconfig',
+      'mfussenegger/nvim-dap',
+      'mfussenegger/nvim-dap-python', --optional
+      'nvim-telescope/telescope.nvim',
+    },
+    lazy = false,
+    branch = 'regexp', -- This is the regexp branch, use this for the new version
+    config = function()
+      require('venv-selector').setup()
+    end,
+    keys = {
+      { '<leader>v', '<cmd>VenvSelect<cr>' },
+    },
   },
 }
