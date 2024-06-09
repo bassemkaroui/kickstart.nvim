@@ -98,6 +98,17 @@ return {
     config = function()
       vim.keymap.set('n', '<leader>nn', '<cmd>Noice dismiss<CR>', { desc = 'Clear notifications' })
 
+      -- Function to clear the recording notification
+      local function clear_recording_notification()
+        vim.cmd 'Noice dismiss'
+      end
+
+      -- Autocommand to clear notification when recording stops
+      vim.api.nvim_create_autocmd('RecordingLeave', {
+        pattern = '*',
+        callback = clear_recording_notification,
+      })
+
       require('noice').setup {
         -- add any options here
         routes = {
@@ -113,6 +124,13 @@ return {
               },
             },
             opts = { skip = true },
+          },
+          {
+            view = 'notify',
+            filter = { event = 'msg_showmode' }, -- This will target macro recording notifications
+            opts = {
+              timeout = false, -- Make the notification persistent
+            },
           },
         },
       }
@@ -166,19 +184,19 @@ return {
       { '<leader>xt', '<cmd>TodoTrouble<CR>', desc = 'Open todos in trouble' },
     },
   },
-  -- {
-  --   'nvim-lualine/lualine.nvim',
-  --   dependencies = { 'nvim-tree/nvim-web-devicons' },
-  --   config = function()
-  --     require('lualine').setup {
-  --       sections = {
-  --         lualine_c = { { 'filename', path = 3 } },
-  --         lualine_x = { 'encoding', 'filetype' },
-  --         lualine_z = {'searchcount', 'location'}
-  --       },
-  --     }
-  --   end,
-  -- },
+  {
+    'nvim-lualine/lualine.nvim',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('lualine').setup {
+        sections = {
+          -- lualine_b = { 'branch', 'diff', { 'diagnostics', symbols = { error = 'E', warn = 'W', info = 'I', hint = 'H' } } },
+          lualine_c = { { 'filename', path = 3 } },
+          lualine_x = { 'searchcount', 'encoding', 'filetype', 'filesize' },
+        },
+      }
+    end,
+  },
   {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
