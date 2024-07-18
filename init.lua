@@ -215,12 +215,19 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
--- Tab management --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>to', '<cmd>tabnew<CR>', { desc = 'Open new tab' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>tx', '<cmd>tabclose<CR>', { desc = 'Close current tab' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>tn', '<cmd>tabn<CR>', { desc = 'Go to next tab' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>tp', '<cmd>tabp<CR>', { desc = 'Go to previous tab' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'Open current buffer in a new tab' }) --<CUSTOM CHANGE>
+-- -- Tab management --<CUSTOM CHANGE>
+-- vim.keymap.set('n', '<leader>to', '<cmd>tabnew<CR>', { desc = 'Open new tab' }) --<CUSTOM CHANGE>
+-- vim.keymap.set('n', '<leader>tx', '<cmd>tabclose<CR>', { desc = 'Close current tab' }) --<CUSTOM CHANGE>
+-- vim.keymap.set('n', '<leader>tn', '<cmd>tabn<CR>', { desc = 'Go to next tab' }) --<CUSTOM CHANGE>
+-- vim.keymap.set('n', '<leader>tp', '<cmd>tabp<CR>', { desc = 'Go to previous tab' }) --<CUSTOM CHANGE>
+-- vim.keymap.set('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'Open current buffer in a new tab' }) --<CUSTOM CHANGE>
+
+-- Buffer management
+vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' })
+vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' })
+vim.keymap.set('n', '<leader>bj', '<cmd>blast<CR>', { desc = 'Last Buffer' })
+vim.keymap.set('n', '<leader>bk', '<cmd>bfirst<CR>', { desc = 'First Buffer' })
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' })
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -324,6 +331,7 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
+        { '<leader>b', group = '[B]uffer' },
       }
     end,
   },
@@ -589,6 +597,11 @@ require('lazy').setup({
       local capabilities = vim.lsp.protocol.make_client_capabilities()
       capabilities = vim.tbl_deep_extend('force', capabilities, require('cmp_nvim_lsp').default_capabilities())
 
+      capabilities.textDocument.foldingRange = {
+        dynamicRegistration = false,
+        lineFoldingOnly = true,
+      }
+
       -- Enable the following language servers
       --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
       --
@@ -657,7 +670,26 @@ require('lazy').setup({
         markdown_oxide = {},
         -- pylyzer = {},
         sqlls = {},
-        yamlls = {},
+        yamlls = {
+          settings = {
+            yaml = {
+              schemas = {
+                ['https://json.schemastore.org/github-workflow.json'] = '/.github/workflows/*',
+                ['https://json.schemastore.org/pre-commit-config.json'] = '/.pre-commit-config.yaml',
+                ['https://json.schemastore.org/gitlab-ci'] = '*gitlab-ci*.{yml,yaml}',
+                ['http://json.schemastore.org/ansible-playbook'] = '*play*.{yml,yaml}',
+                ['http://json.schemastore.org/chart'] = 'Chart.{yml,yaml}',
+                ['https://json.schemastore.org/dependabot-v2'] = '.github/dependabot.{yml,yaml}',
+                ['https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json'] = {
+                  '*docker-compose*.{yml,yaml}',
+                  '*compose*.{yml,yaml}',
+                },
+                ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] = '*flow*.{yml,yaml}',
+                ['http://json.schemastore.org/kustomization'] = 'kustomization.{yml,yaml}',
+              },
+            },
+          },
+        },
         -- clangd = {},
         -- gopls = {},
         -- rust_analyzer = {},
@@ -875,7 +907,7 @@ require('lazy').setup({
           -- Manually trigger a completion from nvim-cmp.
           --  Generally you don't need this, because nvim-cmp will display
           --  completions whenever it has completion options available.
-          ['<A-c>'] = cmp.mapping.complete {}, --<CUSTOM CHANGE>
+          ['<A-CR>'] = cmp.mapping.complete {}, --<CUSTOM CHANGE>
 
           -- Think of <c-l> as moving to the right of your snippet expansion.
           --  So if you have a snippet that's like:

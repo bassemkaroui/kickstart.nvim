@@ -144,17 +144,17 @@ return {
       'rcarriga/nvim-notify',
     },
   },
-  {
-    'akinsho/bufferline.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    version = '*',
-    opts = {
-      options = {
-        mode = 'tabs',
-        separator_style = 'slant',
-      },
-    },
-  },
+  -- {
+  --   'akinsho/bufferline.nvim',
+  --   dependencies = { 'nvim-tree/nvim-web-devicons' },
+  --   version = '*',
+  --   opts = {
+  --     options = {
+  --       mode = 'tabs',
+  --       separator_style = 'slant',
+  --     },
+  --   },
+  -- },
   'tpope/vim-surround',
   {
     'folke/trouble.nvim',
@@ -191,7 +191,8 @@ return {
       require('lualine').setup {
         sections = {
           -- lualine_b = { 'branch', 'diff', { 'diagnostics', symbols = { error = 'E', warn = 'W', info = 'I', hint = 'H' } } },
-          lualine_c = { { 'filename', path = 3 } },
+          -- lualine_c = { { 'filename', path = 3 } },
+          lualine_c = { { 'buffers', show_filename_only = false } },
           lualine_x = { 'searchcount', 'encoding', 'filetype', 'filesize' },
         },
       }
@@ -525,6 +526,46 @@ return {
     end,
     keys = {
       { '<leader>v', '<cmd>VenvSelect<cr>' },
+    },
+  },
+  -- {
+  --   'someone-stole-my-name/yaml-companion.nvim',
+  --   dependencies = {
+  --     { 'neovim/nvim-lspconfig' },
+  --     { 'nvim-lua/plenary.nvim' },
+  --     { 'nvim-telescope/telescope.nvim' },
+  --   },
+  --   config = function()
+  --     require('telescope').load_extension 'yaml_schema'
+  --     vim.keymap.set('n', '<leader>y', '<cmd>Telescope yaml_schema<CR>', { desc = 'Select a yaml schema' })
+  --   end,
+  -- },
+  {
+    'kevinhwang91/nvim-ufo',
+    dependencies = {
+      'kevinhwang91/promise-async',
+      config = function()
+        vim.opt.foldcolumn = '1' -- '0' is not bad
+        vim.opt.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+        vim.opt.foldlevelstart = 99
+        vim.opt.foldenable = true
+
+        -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+        vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+        vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+        vim.keymap.set('n', 'zK', function()
+          local winid = require('ufo').peekFoldedLinesUnderCursor()
+          if not winid then
+            vim.lsp.buf.hover()
+          end
+        end, { desc = 'Peek fold' })
+
+        require('ufo').setup {
+          provider_selector = function(bufnr, filetype, buftype)
+            return { 'lsp', 'indent' }
+          end,
+        }
+      end,
     },
   },
 }
