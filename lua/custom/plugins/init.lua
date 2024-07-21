@@ -23,17 +23,15 @@ return {
       -- 'ibhagwan/fzf-lua', -- optional
     },
     init = function()
-      require('which-key').register {
-        ['<leader>g'] = {
-          name = '[G]it',
-          s = { '<cmd>Neogit<CR>', 'git status' },
-          f = { '<cmd>Neogit kind=floating<CR>', 'git status in floating mode' },
-          c = { '<cmd>Neogit commit<CR>', 'git commit' },
-          p = { '<cmd>Neogit pull<CR>', 'git pull' },
-          P = { '<cmd>Neogit push<CR>', 'git push' },
-          b = { '<cmd>Telescope git_branches<CR>', 'git branch with telescope' },
-          l = { '<cmd>Neogit log<CR>', 'git log' },
-        },
+      require('which-key').add {
+        { '<leader>g', group = '[G]it' },
+        { '<leader>gP', '<cmd>Neogit push<CR>', desc = 'git push' },
+        { '<leader>gb', '<cmd>Telescope git_branches<CR>', desc = 'git branch with telescope' },
+        { '<leader>gc', '<cmd>Neogit commit<CR>', desc = 'git commit' },
+        { '<leader>gf', '<cmd>Neogit kind=floating<CR>', desc = 'git status in floating mode' },
+        { '<leader>gl', '<cmd>Neogit log<CR>', desc = 'git log' },
+        { '<leader>gp', '<cmd>Neogit pull<CR>', desc = 'git pull' },
+        { '<leader>gs', '<cmd>Neogit<CR>', desc = 'git status' },
       }
     end,
     config = true,
@@ -326,14 +324,12 @@ return {
       vim.g.db_ui_win_position = 'left'
       vim.g.db_ui_auto_execute_table_helpers = 1
 
-      require('which-key').register {
-        ['<leader>D'] = {
-          name = '󰆼 Db Tools',
-          u = { '<cmd>DBUIToggle<cr>', ' DB UI Toggle' },
-          f = { '<cmd>DBUIFindBuffer<cr>', ' DB UI Find buffer' },
-          r = { '<cmd>DBUIRenameBuffer<cr>', ' DB UI Rename buffer' },
-          l = { '<cmd>DBUILastQueryInfo<cr>', ' DB UI Last query infos' },
-        },
+      require('which-key').add {
+        { '<leader>D', group = '󰆼 Db Tools' },
+        { '<leader>Df', '<cmd>DBUIFindBuffer<cr>', desc = ' DB UI Find buffer' },
+        { '<leader>Dl', '<cmd>DBUILastQueryInfo<cr>', desc = ' DB UI Last query infos' },
+        { '<leader>Dr', '<cmd>DBUIRenameBuffer<cr>', desc = ' DB UI Rename buffer' },
+        { '<leader>Du', '<cmd>DBUIToggle<cr>', desc = ' DB UI Toggle' },
       }
     end,
   },
