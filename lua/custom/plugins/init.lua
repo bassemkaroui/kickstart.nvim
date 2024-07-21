@@ -110,6 +110,9 @@ return {
       })
 
       require('noice').setup {
+        presets = {
+          lsp_doc_border = true, -- add a border to hover docs and signature help
+        },
         -- add any options here
         routes = {
           {
@@ -300,6 +303,7 @@ return {
       { '<leader>tz', '<cmd>ZenMode<CR>', desc = 'Toggle ZenMode' },
     },
   },
+
   -- Database
   {
     'kristijanhusak/vim-dadbod-ui',
@@ -349,6 +353,7 @@ return {
     --    sudo nala install -y postgresql-client postgresql-client-common
     --
   },
+
   -- Debugger
   'nvim-neotest/nvim-nio',
   {
@@ -567,5 +572,15 @@ return {
         }
       end,
     },
+  },
+  {
+    'amitds1997/remote-nvim.nvim',
+    version = 'v0.3.9', -- Pin to GitHub releases
+    dependencies = {
+      'nvim-lua/plenary.nvim', -- For standard functions
+      'MunifTanjim/nui.nvim', -- To build the plugin UI
+      'nvim-telescope/telescope.nvim', -- For picking b/w different remote methods
+    },
+    config = true,
   },
 }
