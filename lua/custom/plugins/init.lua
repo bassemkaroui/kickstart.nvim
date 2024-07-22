@@ -523,7 +523,20 @@ return {
     lazy = false,
     branch = 'regexp', -- This is the regexp branch, use this for the new version
     config = function()
-      require('venv-selector').setup()
+      require('venv-selector').setup {
+        settings = {
+          search = {
+            anaconda_base = {
+              command = 'fd /python$ $HOME/anaconda3/bin --full-path --color never -E /proc',
+              type = 'anaconda',
+            },
+            anaconda_envs = {
+              command = 'fd /bin/python$ $HOME/anaconda3/envs --full-path --color never -E /proc -E pkgs',
+              type = 'anaconda',
+            },
+          },
+        },
+      }
     end,
     keys = {
       { '<leader>v', '<cmd>VenvSelect<cr>' },
@@ -577,6 +590,108 @@ return {
       'MunifTanjim/nui.nvim', -- To build the plugin UI
       'nvim-telescope/telescope.nvim', -- For picking b/w different remote methods
     },
-    config = true,
+    config = function()
+      vim.keymap.set('n', '<leader>rs', '<CMD>RemoteStart<CR>', { desc = 'Start a remote Neovim' })
+      vim.keymap.set('n', '<leader>rS', '<CMD>RemoteStop<CR>', { desc = 'Stop a remote Neovim' })
+      vim.keymap.set('n', '<leader>ri', '<CMD>RemoteInfo<CR>', { desc = 'Remote Neovim Info' })
+      vim.keymap.set('n', '<leader>rl', '<CMD>RemoteLog<CR>', { desc = 'Remote Neovim Logs' })
+
+      -- Function to prompt for an argument and execute :RemoteCleanup with that argument
+      local function remote_cleanup()
+        -- Prompt the user for input
+        local input = vim.fn.input 'Enter the remote name: '
+
+        -- Check if input is not empty
+        if input and input ~= '' then
+          -- Execute the :RemoteCleanup command with the provided argument
+          vim.cmd('RemoteCleanup ' .. input)
+        else
+          print 'Remote name is required.'
+        end
+      end
+      vim.keymap.set('n', '<leader>rc', remote_cleanup, { desc = 'Cleanup a remote Neovim' })
+
+      require('remote-nvim').setup {
+        client_callback = function(port, workspace_config)
+          local session_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
+          local window_name = ('Remote: %s'):format(workspace_config.host)
+          local cmd = ("tmux new-window -n '%s' 'nvim --server localhost:%s --remote-ui'"):format(window_name, port)
+          vim.fn.jobstart(cmd, {
+            detach = true,
+            on_exit = function(job_id, exit_code, event_type)
+              -- This function will be called when the job exits
+              print('Client', job_id, 'exited with code', exit_code, 'Event type:', event_type)
+            end,
+          })
+        end,
+      }
+    end,
+  },
+  {
+    'Vigemus/iron.nvim',
+    -- keys = {
+    --   { '<leader>i', '<cmd>IronRepl<cr>', desc = '󱠤 Toggle REPL' },
+    --   { '<leader>I', '<cmd>IronRestart<cr>', desc = '󱠤 Restart REPL' },
+    --
+    --   -- these keymaps need no right-hand-side, since that is defined by the
+    --   -- plugin config further below
+    --   { '+', mode = { 'n', 'x' }, desc = '󱠤 Send-to-REPL Operator' },
+    --   { '++', desc = '󱠤 Send Line to REPL' },
+    -- },
+    config = function()
+      local iron = require 'iron.core'
+      local view = require 'iron.view'
+
+      iron.setup {
+        config = {
+          -- Whether a repl should be discarded or not
+          scratch_repl = true,
+          -- Your repl definitions come here
+          repl_definition = {
+            -- sh = {
+            --   -- Can be a table or a function that
+            --   -- returns a table (see below)
+            --   command = { 'zsh' },
+            -- },
+            python = {
+              command = { 'ipython', '-i', '--no-autoindent', '--nosep' },
+              format = require('iron.fts.common').bracketed_paste_python,
+            },
+          },
+          -- -- `view.center` takes either one or two arguments
+          -- repl_open_cmd = view.center '80%',
+          repl_open_cmd = 'vertical botright 80 split',
+        },
+        -- Iron doesn't set keymaps by default anymore.
+        -- You can set them here or manually add keymaps to the functions in iron.core
+        keymaps = {
+          send_line = '++',
+          visual_send = '+',
+          send_motion = '+',
+          -- send_file = '<space>sf',
+          send_paragraph = '<leader>ip',
+          -- send_until_cursor = '<space>su',
+          -- send_mark = '<space>sm',
+          -- mark_motion = '<space>mc',
+          -- mark_visual = '<space>mc',
+          -- remove_mark = '<space>md',
+          -- cr = '<space>s<cr>',
+          -- interrupt = '<space>s<space>',
+          -- exit = '<space>sq',
+          -- clear = '<space>cl',
+        },
+        -- If the highlight is on, you can change how it looks
+        -- For the available options, check nvim_set_hl
+        highlight = {
+          italic = true,
+        },
+        ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
+      }
+      -- iron also has a list of commands, see :h iron-commands for all available commands
+      vim.keymap.set('n', '<leader>it', '<cmd>IronRepl<cr>', { desc = 'Start REPL' })
+      vim.keymap.set('n', '<leader>ir', '<cmd>IronRestart<cr>', { desc = 'Restart REPL' })
+      vim.keymap.set('n', '<leader>if', '<cmd>IronFocus<cr>', { desc = 'Focus REPL' })
+      -- vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
+    end,
   },
 }
