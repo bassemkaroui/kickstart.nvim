@@ -528,11 +528,11 @@ return {
         settings = {
           search = {
             anaconda_base = {
-              command = 'fd /python$ $HOME/anaconda3/bin --full-path --color never -E /proc',
+              command = 'fd /python$ $HOME/miniforge3/bin --full-path --color never -E /proc',
               type = 'anaconda',
             },
             anaconda_envs = {
-              command = 'fd /bin/python$ $HOME/anaconda3/envs --full-path --color never -E /proc -E pkgs',
+              command = 'fd /bin/python$ $HOME/miniforge3/envs --full-path --color never -E /proc -E pkgs',
               type = 'anaconda',
             },
           },
