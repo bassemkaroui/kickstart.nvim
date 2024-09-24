@@ -494,10 +494,10 @@ return {
   -- f-strings
   -- - auto-convert strings to f-strings when typing `{}` in a string
   -- - also auto-converts f-strings back to regular strings when removing `{}`
-  {
-    'chrisgrieser/nvim-puppeteer',
-    dependencies = 'nvim-treesitter/nvim-treesitter',
-  },
+  -- {
+  --   'chrisgrieser/nvim-puppeteer',
+  --   dependencies = 'nvim-treesitter/nvim-treesitter',
+  -- },
   -- Docstring creation
   -- - quickly create docstrings via `<leader>a`
   {
