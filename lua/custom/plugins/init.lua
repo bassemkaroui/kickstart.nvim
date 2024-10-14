@@ -58,8 +58,8 @@ return {
     'rmagatti/goto-preview',
     config = function()
       require('goto-preview').setup {
-        width = 120, -- Width of the floating window
-        height = 15, -- Height of the floating window
+        width = 140, -- Width of the floating window
+        height = 40, -- Height of the floating window
         border = { '↖', '─', '┐', '│', '┘', '─', '└', '│' }, -- Border characters of the floating window
         default_mappings = true,
         debug = false, -- Print debug information
@@ -566,6 +566,13 @@ return {
         vim.opt.foldenable = true
 
         -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+        vim.keymap.set('n', 'z<space>', function()
+          if vim.opt.foldlevel:get() == 1 then
+            vim.opt.foldlevel = 99
+          else
+            vim.opt.foldlevel = 1
+          end
+        end, { noremap = true, silent = true, desc = 'Set fold level to 1' })
         vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
         vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
         vim.keymap.set('n', 'zK', function()
@@ -694,21 +701,36 @@ return {
       vim.keymap.set('n', '<leader>if', '<cmd>IronFocus<cr>', { desc = 'Focus REPL' })
       -- vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
 
-      -- Global function to send 'pinfo' command for the entire line to IPython REPL
-      function _G.send_ipython_help()
-        -- Get the entire line under the cursor
-        local line = vim.fn.getline '.'
-        -- Create the pinfo command without adding an extra newline
-        local pinfo_command = line .. '?'
-        -- Send the command to the REPL
-        iron.send(nil, { pinfo_command })
-        -- Manually send a newline to execute the command
-        iron.send(nil, { '' })
-        -- Focus on the REPL
-        vim.cmd 'IronFocus'
+      -- -- Global function to send 'pinfo' command for the entire line to IPython REPL
+      -- function _G.send_ipython_help()
+      --   -- Get the entire line under the cursor
+      --   local line = vim.fn.getline '.'
+      --   -- Create the pinfo command without adding an extra newline
+      --   local pinfo_command = line .. '?'
+      --   -- Send the command to the REPL
+      --   iron.send(nil, { pinfo_command })
+      --   -- Manually send a newline to execute the command
+      --   iron.send(nil, { '' })
+      --   -- Focus on the REPL
+      --   vim.cmd 'IronFocus'
+      -- end
+
+      function _G.send_ipython_help_visual()
+        local selected_text = vim.fn.getreg '"' -- Get the selected text from the default register
+        if selected_text then
+          -- Trim the selected text
+          selected_text = selected_text:gsub('^%s*(.-)%s*$', '%1') -- Remove leading and trailing whitespace
+          -- Append '?' and send to REPL
+          iron.send(nil, { selected_text .. '?' })
+          iron.send(nil, { '' })
+
+          -- Focus on the REPL
+          vim.cmd 'IronFocus'
+        end
       end
 
-      vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help()<CR>', { desc = 'Send line for documentation' })
+      -- vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help()<CR>', { desc = 'Send line for documentation' })
+      vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help_visual()<CR>', { desc = 'Send selected text for documentation' })
     end,
   },
   -- {
@@ -742,7 +764,7 @@ return {
       { '<leader>tC', '<cmd>VtrClearRunner<cr>', desc = 'Clear Tmux Runner' },
       { '<leader>tF', '<cmd>VtrFocusRunner<cr>', desc = 'Focus Tmux Runner' },
       { '<leader>tR', '<cmd>VtrReorientRunner<cr>', desc = 'Reorient Tmux Runner' },
-      { '<leader>ta', '<cmd>VtrReattachRunner<cr>', desc = 'Reattach Tmux Runner' },
+      -- { '<leader>ta', '<cmd>VtrReattachRunner<cr>', desc = 'Reattach Tmux Runner' },
       { '<leader>tc', '<cmd>VtrFlushCommand<cr>', desc = 'Flush Tmux Runner Command' },
       { '<leader>tf', '<cmd>VtrSendFile<cr>', desc = 'Send File to Tmux Runner' },
       { '<leader>tk', '<cmd>VtrKillRunner<cr>', desc = 'Kill Tmux Runner' },
