@@ -170,6 +170,13 @@ vim.o.confirm = true
 
 vim.opt.termguicolors = true -- needed for nvim-notify plugin --<CUSTOM CHANGE>
 
+-- -- Set foldmethod and foldexpr for Treesitter
+-- vim.wo.foldmethod = 'expr'
+-- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+--
+-- -- Optional: Set the default fold level (e.g., to not fold by default)
+-- vim.wo.foldlevel = 99
+
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -251,6 +258,7 @@ vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' }) --
 vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bp', '<cmd>b#<CR>', { desc = 'Go back to the previous Buffer' }) --<CUSTOM CHANGE>
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
@@ -397,8 +405,8 @@ require('lazy').setup({
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
         { '<leader>b', group = '[B]uffer' },
       },
+    },
   },
-},
   -- NOTE: Plugins can specify dependencies.
   --
   -- The dependencies are proper plugin specifications as well - anything
@@ -456,11 +464,15 @@ require('lazy').setup({
         -- You can put your default mappings / updates / etc. in here
         --  All the info you're looking for is in `:help telescope.setup()`
         --
-        -- defaults = {
-        --   mappings = {
-        --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-        --   },
-        -- },
+        defaults = {
+          mappings = {
+            -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+            n = {
+              ['d'] = require('telescope.actions').delete_buffer,
+              ['q'] = require('telescope.actions').close,
+            },
+          },
+        },
         -- pickers = {}
         extensions = {
           ['ui-select'] = {
@@ -790,6 +802,7 @@ require('lazy').setup({
                   enabled = true,
                   settings = {
                     profile = 'black',
+                    force_to_top = true, -- Ensures imports are sorted to the top of the file
                   },
                 },
                 black = {
@@ -916,6 +929,22 @@ require('lazy').setup({
               server.capabilities.textDocument.completion = nil
               server.on_attach = function(client, bufnr)
                 client.server_capabilities.completionProvider = false -- Disable completionProvider capability
+                client.server_capabilities.definitionProvider = false -- Disable go-to-definition
+                -- client.server_capabilities.hoverProvider = false -- Disable hover documentation
+                client.server_capabilities.SignatureHelpProvider = false -- Handles function signature hints while typing
+                client.server_capabilities.ReferencesProvider = false -- Enables finding all references to a symbol
+                client.server_capabilities.DocumentSymbolProvider = false
+                client.server_capabilities.WorkspaceSymbolProvider = false
+                client.server_capabilities.CodeActionProvider = false --Handles code actions like quick fixes or refactoring options
+                client.server_capabilities.CodeLensProvider = false --Provides code lens annotations (e.g., references or tests)
+                client.server_capabilities.DocumentHighlightProvider = false --Highlights other occurrences of the symbol under the cursor
+                client.server_capabilities.DocumentFormattingProvider = false -- Provides full document formatting capabilities
+                client.server_capabilities.DocumentRangeFormattingProvider = false --Formats a selected range in a document
+                client.server_capabilities.RenameProvider = false --Enables symbol renaming support
+                client.server_capabilities.ImplementationProvider = false --Enables go-to implementation
+                client.server_capabilities.DiagnosticProvider = false
+                client.server_capabilities.InlayHintProvider = false --Supports inlay hints for parameter names or type hints inline in code
+                client.server_capabilities.TypeDefinitionProvider = false --Enables go-to type definition
               end
             end
 
@@ -948,7 +977,7 @@ require('lazy').setup({
         end
       end
       -- Ensure the plugins are installed only once per session
-      local plugins_installed = false
+      local plugins_installed = true
 
       local function install_plugins_once()
         if not plugins_installed then
@@ -1001,7 +1030,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        -- python = { 'isort', 'black' },
         markdown = { 'inject' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
@@ -1032,12 +1061,12 @@ require('lazy').setup({
           -- `friendly-snippets` contains a variety of premade snippets.
           --    See the README about individual language/framework/plugin snippets:
           --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
+          {
+            'rafamadriz/friendly-snippets',
+            config = function()
+              require('luasnip.loaders.from_vscode').lazy_load()
+            end,
+          },
         },
         opts = {},
       },
@@ -1150,7 +1179,7 @@ require('lazy').setup({
       -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
       -- - sd'   - [S]urround [D]elete [']quotes
       -- - sr)'  - [S]urround [R]eplace [)] [']
-      require('mini.surround').setup()
+      -- require('mini.surround').setup()
 
       -- -- Simple and easy statusline.
       -- --  You could remove this setup call if you don't like it,
@@ -1307,6 +1336,9 @@ require('lazy').setup({
           },
         },
       },
+      -- fold = {
+      --   enable = true,
+      -- },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
