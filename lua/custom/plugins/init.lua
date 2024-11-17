@@ -392,7 +392,7 @@ return {
       vim.keymap.set(
         'n',
         '<leader>df',
-        "<cmd>lua require('dapui').float_element(_, {height=40, width=50, position='center'})<CR>",
+        "<cmd>lua require('dapui').float_element(_, {height=40, width=80, position='center'})<CR>",
         { desc = 'Open element in a floating window' }
       )
       vim.keymap.set('n', '<leader>ht', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
@@ -733,6 +733,23 @@ return {
       vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help_visual()<CR>', { desc = 'Send selected text for documentation' })
     end,
   },
+  -- {
+  --   'wallpants/github-preview.nvim',
+  --   cmd = { 'GithubPreviewToggle' },
+  --   -- keys = { '<leader>mpt' },
+  --   opts = {
+  --     -- config goes here
+  --   },
+  --   config = function(_, opts)
+  --     local gpreview = require 'github-preview'
+  --     gpreview.setup(opts)
+  --
+  --     local fns = gpreview.fns
+  --     vim.keymap.set('n', '<leader>tm', fns.toggle)
+  --     -- vim.keymap.set('n', '<leader>mps', fns.single_file_toggle)
+  --     -- vim.keymap.set('n', '<leader>mpd', fns.details_tags_toggle)
+  --   end,
+  -- },
   -- {
   --   'iamcco/markdown-preview.nvim',
   --   cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
