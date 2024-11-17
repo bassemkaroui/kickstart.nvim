@@ -776,7 +776,8 @@ require('lazy').setup({
                 -- },
                 pylsp_mypy = {
                   enabled = true,
-                  live_mode = true,
+                  dmypy = true,
+                  live_mode = false,
                   report_progress = true,
                   overrides = {
                     true,
@@ -802,7 +803,7 @@ require('lazy').setup({
                   enabled = true,
                   settings = {
                     profile = 'black',
-                    force_to_top = true, -- Ensures imports are sorted to the top of the file
+                    -- force_to_top = true, -- Ensures imports are sorted to the top of the file
                   },
                 },
                 black = {
@@ -991,6 +992,24 @@ require('lazy').setup({
           local client = vim.lsp.get_client_by_id(args.data.client_id)
           if client.name == 'pylsp' then
             install_plugins_once()
+          end
+        end,
+      })
+
+      local augroup = vim.api.nvim_create_augroup('FloatingWindowFix', {})
+      vim.api.nvim_create_autocmd('BufWinEnter', {
+        group = augroup,
+        pattern = '*',
+        callback = function()
+          if vim.api.nvim_win_get_config(0).relative ~= '' then
+            -- Get all LSP clients using the updated API
+            local clients = vim.lsp.get_clients()
+            for _, client in ipairs(clients) do
+              if client.name == 'pylsp' and vim.lsp.buf_is_attached(0, client.id) then
+                -- Only detach if the buffer is actually attached to the client
+                vim.lsp.buf_detach_client(0, client.id)
+              end
+            end
           end
         end,
       })
