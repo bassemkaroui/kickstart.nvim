@@ -996,23 +996,60 @@ require('lazy').setup({
         end,
       })
 
+      -- Disable pylsp for floating windows
+      -- Create a global variable to track the toggle state
+      _G.pylsp_detach_floating_enabled = true
+
+      -- Function to toggle the functionality
+      function _G.toggle_pylsp_detach_floating()
+        _G.pylsp_detach_floating_enabled = not _G.pylsp_detach_floating_enabled
+
+        -- Re-attach or detach LSP clients based on the new state
+        local clients = vim.lsp.get_clients()
+        local win_config = vim.api.nvim_win_get_config(0)
+        if win_config.relative ~= '' then -- Check if it's a floating window
+          for _, client in ipairs(clients) do
+            if client.name == 'pylsp' then
+              if _G.pylsp_detach_floating_enabled then
+                -- Detach if the feature is enabled
+                if vim.lsp.buf_is_attached(0, client.id) then
+                  vim.lsp.buf_detach_client(0, client.id)
+                end
+              else
+                -- Attach if the feature is disabled
+                if not vim.lsp.buf_is_attached(0, client.id) then
+                  vim.lsp.buf_attach_client(0, client.id)
+                end
+              end
+            end
+          end
+        end
+
+        print('pylsp detachment for floating windows is now ' .. (_G.pylsp_detach_floating_enabled and 'enabled' or 'disabled'))
+      end
+
+      -- Create an augroup for the autocmd
       local augroup = vim.api.nvim_create_augroup('FloatingWindowFix', {})
+
+      -- Create the autocmd
       vim.api.nvim_create_autocmd('BufWinEnter', {
         group = augroup,
         pattern = '*',
         callback = function()
-          if vim.api.nvim_win_get_config(0).relative ~= '' then
-            -- Get all LSP clients using the updated API
+          if _G.pylsp_detach_floating_enabled and vim.api.nvim_win_get_config(0).relative ~= '' then
+            -- Detach LSP clients from floating windows
             local clients = vim.lsp.get_clients()
             for _, client in ipairs(clients) do
               if client.name == 'pylsp' and vim.lsp.buf_is_attached(0, client.id) then
-                -- Only detach if the buffer is actually attached to the client
                 vim.lsp.buf_detach_client(0, client.id)
               end
             end
           end
         end,
       })
+
+      -- Create a keymap for toggling
+      vim.api.nvim_set_keymap('n', '<leader>tp', '<CMD>lua toggle_pylsp_detach_floating()<CR>', { desc = 'Toggle lsp for floating windows' })
     end,
   },
 
