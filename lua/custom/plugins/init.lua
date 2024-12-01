@@ -397,6 +397,16 @@ return {
       )
       vim.keymap.set('n', '<leader>ht', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
       vim.keymap.set({ 'n', 'x' }, '<leader>de', "<CMD>lua require('dapui').eval()<CR><CMD>lua require('dapui').eval()<CR>", { desc = 'Dap Evaluate' })
+      -- New keymap to evaluate a custom expression entered by the user
+      vim.keymap.set('n', '<leader>dE', function()
+        local expression = vim.fn.input 'Evaluate expression: '
+        if expression and expression ~= '' then
+          require('dapui').eval(expression)
+          require('dapui').eval(expression)
+        else
+          print 'No expression provided.'
+        end
+      end, { desc = 'Dap Evaluate Custom Expression' })
     end,
     -- keys = {
     --   { '<leader>dt', ':DapUiToggle<CR>', desc = 'DapUI Toggle' },
