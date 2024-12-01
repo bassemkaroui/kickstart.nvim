@@ -392,10 +392,11 @@ return {
       vim.keymap.set(
         'n',
         '<leader>df',
-        "<cmd>lua require('dapui').float_element(_, {height=40, width=80, position='center'})<CR>",
+        "<cmd>lua require('dapui').float_element(_, {height=40, width=80, position='center', enter=true})<CR>",
         { desc = 'Open element in a floating window' }
       )
       vim.keymap.set('n', '<leader>ht', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
+      vim.keymap.set({ 'n', 'x' }, '<leader>de', "<CMD>lua require('dapui').eval()<CR><CMD>lua require('dapui').eval()<CR>", { desc = 'Dap Evaluate' })
     end,
     -- keys = {
     --   { '<leader>dt', ':DapUiToggle<CR>', desc = 'DapUI Toggle' },
