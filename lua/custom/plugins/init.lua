@@ -431,8 +431,10 @@ return {
     config = function(_, opts)
       local path = '~/.local/share/nvim/mason/packages/debugpy/venv/bin/python'
       require('dap-python').setup(path)
+      require('dap-python').test_runner = 'pytest'
       vim.keymap.set('n', '<leader>dpm', "<cmd>lua require('dap-python').test_method()<CR>", { desc = 'Debug python method' })
       vim.keymap.set('n', '<leader>dpc', "<cmd>lua require('dap-python').test_class()<CR>", { desc = 'Debug python class' })
+      vim.keymap.set('n', '<leader>dps', "<CMD>lua require('dap-python').debug_selection()<CR>", { desc = 'Debug python selection' })
     end,
   },
   {
