@@ -774,6 +774,7 @@ require('lazy').setup({
                 -- pylsp_rope = {
                 --   enabled = true,
                 -- },
+                -- rope_completion = { enabled = true },
                 pylsp_mypy = {
                   enabled = true,
                   dmypy = true,
@@ -820,6 +821,23 @@ require('lazy').setup({
         },
         pyright = {
           -- autostart = false,
+          on_attach = function(client, bufnr)
+            -- Disable auto-completion
+            client.server_capabilities.completionProvider = nil
+
+            -- Disable code navigation capabilities
+            client.server_capabilities.definitionProvider = false
+            client.server_capabilities.declarationProvider = false
+            client.server_capabilities.implementationProvider = false
+            client.server_capabilities.referencesProvider = false
+
+            -- (Optional) Disable other navigation features if not needed
+            client.server_capabilities.documentSymbolProvider = false
+            client.server_capabilities.workspaceSymbolProvider = false
+
+            -- Leave hoverProvider enabled so that 'K' shows type info
+            client.server_capabilities.hoverProvider = true
+          end,
           settings = {
             pyright = {
               disableOrganizeImports = true,
@@ -830,6 +848,10 @@ require('lazy').setup({
               analysis = {
                 autoSearchPaths = true,
                 diagnosticMode = 'off', -- Disables diagnostics
+                -- diagnosticSeverityOverrides = {
+                --   reportMissingModuleSource = 'none',
+                --   reportMissingImports = 'none',
+                -- },
                 useLibraryCodeForTypes = true,
                 typeCheckingMode = 'off',
               },
@@ -966,7 +988,7 @@ require('lazy').setup({
       local function ensure_pylsp_plugins()
         local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
         if vim.fn.executable(vim.fn.expand(pip_path)) == 1 then
-          local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy' } -- 'pylsp-rope'
+          local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy', 'pylsp-rope' } --
           for _, plugin in ipairs(pylsp_plugins) do
             local handle = io.popen(pip_path .. ' show ' .. plugin)
             local result = handle:read '*a'
