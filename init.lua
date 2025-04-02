@@ -99,7 +99,7 @@ vim.g.have_nerd_font = true -- <CUSTOM CHANGE>
 --  For more options, you can see `:help option-list`
 
 -- Hightlight a column, good to know if you reached 80 characters for example
-vim.opt.colorcolumn = '88' -- <CUSTOM CHANGE>
+vim.opt.colorcolumn = '100' -- <CUSTOM CHANGE>
 -- Make line numbers default
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
@@ -763,18 +763,32 @@ require('lazy').setup({
         -- black = {},
         -- pylint = {},
         taplo = {},
-        -- ruff = {},
+        -- ruff = {
+        --   init_options = {
+        --     configuration = '~/.config/nvim/ruff/pyproject.toml',
+        --     settings = {
+        --       configurationPreference = 'filesystemFirst',
+        --     },
+        --   },
+        -- },
         -- ruff_lsp = {},
         bashls = {},
         pylsp = {
           settings = {
-            configurationSources = { 'flake8' },
+            -- configurationSources = { 'flake8' },
             pylsp = {
               plugins = {
-                -- pylsp_rope = {
-                --   enabled = true,
-                -- },
-                -- rope_completion = { enabled = true },
+                ruff = {
+                  enabled = true,
+                  formatEnabled = true,
+                  config = '~/.config/nvim/ruff/pyproject.toml',
+                  format = { 'I', 'F541' },
+                  unsafeFixes = true,
+                },
+                -- -- pylsp_rope = {
+                -- --   enabled = true,
+                -- -- },
+                -- -- rope_completion = { enabled = true },
                 pylsp_mypy = {
                   enabled = true,
                   dmypy = true,
@@ -785,36 +799,36 @@ require('lazy').setup({
                     '--ignore-missing-imports', -- Add the same flag you would use in mypy.ini
                   },
                 },
-                pylint = {
-                  enabled = true,
-                  args = {
-                    '--disable=C0111,C0103', -- Disable missing docstring and naming convention checks
-                    '--init-hook=from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))',
-                  },
-                },
+                -- pylint = {
+                --   enabled = true,
+                --   args = {
+                --     '--disable=C0111,C0103', -- Disable missing docstring and naming convention checks
+                --     '--init-hook=from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))',
+                --   },
+                -- },
                 pycodestyle = { enabled = false },
                 mccabe = { enabled = false },
                 pyflakes = { enabled = false },
-                flake8 = {
-                  enabled = true,
-                  maxLineLength = 88,
-                  ignore = { 'E203', 'W503', 'E701' }, -- Ignore whitespace before ':' and line break before binary operator
-                },
-                isort = {
-                  enabled = true,
-                  settings = {
-                    profile = 'black',
-                    -- force_to_top = true, -- Ensures imports are sorted to the top of the file
-                  },
-                },
-                black = {
-                  enabled = true,
-                  line_length = 88,
-                },
-                jedi_completion = { enabled = true }, -- Ensure Jedi is enabled for better doc lookup
-                jedi_hover = { enabled = true },
-                jedi_references = { enabled = true },
-                jedi_signature_help = { enabled = true },
+                -- flake8 = {
+                --   enabled = true,
+                --   maxLineLength = 88,
+                --   ignore = { 'E203', 'W503', 'E701' }, -- Ignore whitespace before ':' and line break before binary operator
+                -- },
+                -- isort = {
+                --   enabled = true,
+                --   settings = {
+                --     profile = 'black',
+                --     -- force_to_top = true, -- Ensures imports are sorted to the top of the file
+                --   },
+                -- },
+                -- black = {
+                --   enabled = true,
+                --   line_length = 88,
+                -- },
+                -- jedi_completion = { enabled = true }, -- Ensure Jedi is enabled for better doc lookup
+                -- jedi_hover = { enabled = true },
+                -- jedi_references = { enabled = true },
+                -- jedi_signature_help = { enabled = true },
               },
             },
           },
@@ -848,10 +862,11 @@ require('lazy').setup({
               analysis = {
                 autoSearchPaths = true,
                 diagnosticMode = 'off', -- Disables diagnostics
-                -- diagnosticSeverityOverrides = {
-                --   reportMissingModuleSource = 'none',
-                --   reportMissingImports = 'none',
-                -- },
+                diagnosticSeverityOverrides = {
+                  --   reportMissingModuleSource = 'none',
+                  --   reportMissingImports = 'none',
+                  reportUndefinedVariable = 'none',
+                },
                 useLibraryCodeForTypes = true,
                 typeCheckingMode = 'off',
               },
@@ -975,20 +990,12 @@ require('lazy').setup({
           end,
         },
       }
-      -- -- Install python-lsp-black and python-lsp-isort when pylsp is attached
-      -- vim.api.nvim_create_autocmd('LspAttach', {
-      --   callback = function(args)
-      --     local client = vim.lsp.get_client_by_id(args.data.client_id)
-      --     if client.name == 'pylsp' then
-      --       vim.cmd 'PylspInstall python-lsp-black python-lsp-isort'
-      --     end
-      --   end,
-      -- })
       -- Function to install required plugins
       local function ensure_pylsp_plugins()
         local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
         if vim.fn.executable(vim.fn.expand(pip_path)) == 1 then
-          local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy', 'pylsp-rope' } --
+          -- local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy', 'pylsp-rope' } --
+          local pylsp_plugins = { 'python-lsp-ruff', 'pylsp-mypy' } --
           for _, plugin in ipairs(pylsp_plugins) do
             local handle = io.popen(pip_path .. ' show ' .. plugin)
             local result = handle:read '*a'
@@ -1109,6 +1116,8 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
         -- python = { 'isort', 'black' },
+        -- python = { 'ruff_organize_imports' },
+        -- python = { 'ruff_fix' },
         markdown = { 'inject' },
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
