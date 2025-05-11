@@ -787,6 +787,15 @@ return {
     },
   },
   {
+    'MeanderingProgrammer/render-markdown.nvim',
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+    ---@module 'render-markdown'
+    ---@type render.md.UserConfig
+    opts = { render_modes = { 'n', 'c' } },
+  },
+  {
     'christoomey/vim-tmux-runner',
     enabled = true and os.getenv 'TMUX' ~= nil,
     event = 'VeryLazy',
@@ -831,6 +840,60 @@ return {
     },
     config = function(_, opts)
       require('bigfile').setup(opts)
+    end,
+  },
+  {
+    'kelly-lin/ranger.nvim',
+    config = function()
+      require('ranger-nvim').setup { replace_netrw = true }
+      vim.api.nvim_set_keymap('n', '<leader>lr', '', {
+        noremap = true,
+        callback = function()
+          require('ranger-nvim').open(true)
+        end,
+      })
+    end,
+  },
+  {
+    'mikavilpas/yazi.nvim',
+    event = 'VeryLazy',
+    dependencies = {
+      -- check the installation instructions at
+      -- https://github.com/folke/snacks.nvim
+      'folke/snacks.nvim',
+    },
+    keys = {
+      -- 👇 in this section, choose your own keymappings!
+      {
+        '<leader>-',
+        mode = { 'n', 'v' },
+        '<cmd>Yazi<cr>',
+        desc = 'Open yazi at the current file',
+      },
+      {
+        -- Open in the current working directory
+        '<leader>cw',
+        '<cmd>Yazi cwd<cr>',
+        desc = "Open the file manager in nvim's working directory",
+      },
+      {
+        '<c-up>',
+        '<cmd>Yazi toggle<cr>',
+        desc = 'Resume the last yazi session',
+      },
+    },
+    opts = {
+      -- if you want to open yazi instead of netrw, see below for more info
+      open_for_directories = false,
+      keymaps = {
+        show_help = '<f1>',
+      },
+    },
+    -- 👇 if you use `open_for_directories=true`, this is recommended
+    init = function()
+      -- More details: https://github.com/mikavilpas/yazi.nvim/issues/802
+      -- vim.g.loaded_netrw = 1
+      vim.g.loaded_netrwPlugin = 1
     end,
   },
 }

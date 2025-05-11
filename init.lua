@@ -542,6 +542,48 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+
+      local pickers = require 'telescope.pickers'
+      local finders = require 'telescope.finders'
+      local conf = require('telescope.config').values
+      local actions = require 'telescope.actions'
+      local action_state = require 'telescope.actions.state'
+
+      vim.keymap.set('n', '<leader>sb', function()
+        local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+        local entries = {}
+        for i, line in ipairs(lines) do
+          if line:match '^#%s*%-%-%-.*%-%-%-' then
+            table.insert(entries, { line = line, lnum = i })
+          end
+        end
+
+        pickers
+          .new({}, {
+            prompt_title = 'Section Markers',
+            finder = finders.new_table {
+              results = entries,
+              entry_maker = function(entry)
+                return {
+                  value = entry,
+                  display = entry.line,
+                  ordinal = entry.line,
+                }
+              end,
+            },
+            sorter = conf.generic_sorter {},
+            previewer = false, -- disable preview
+            attach_mappings = function(prompt_bufnr, map)
+              actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
+              end)
+              return true
+            end,
+          })
+          :find()
+      end, { desc = 'Jump to # --- section' })
     end,
   },
 
@@ -574,6 +616,9 @@ require('lazy').setup({
 
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
+
+      -- for jsonls
+      'b0o/schemastore.nvim',
     },
     config = function()
       -- Brief aside: **What is LSP?**
@@ -762,6 +807,26 @@ require('lazy').setup({
         -- isort = {},
         -- black = {},
         -- pylint = {},
+        prettier = {},
+        jsonls = {
+          settings = {
+            json = {
+              schemas = require('schemastore').json.schemas(),
+              -- schemas = vim.list_extend(
+              --   require('schemastore').json.schemas(), --  Load all known schemas
+              --   {
+              --     {
+              --       fileMatch = { '.renovaterc', '.renovaterc.json' },
+              --       url = 'https://docs.renovatebot.com/renovate-schema.json',
+              --     },
+              --   }
+              -- ),
+              validate = { enable = true },
+              -- resultLimit = 10000, -- Optional: avoid missing large schemas
+            },
+          },
+          filetypes = { 'json', 'jsonc', 'json5' },
+        },
         taplo = {},
         -- ruff = {
         --   init_options = {
@@ -878,7 +943,7 @@ require('lazy').setup({
         docker_compose_language_service = {},
         dockerls = {},
         gitlab_ci_ls = {},
-        grammarly = {},
+        -- grammarly = {},
         helm_ls = {},
         jqls = {},
         markdown_oxide = {},
@@ -1118,7 +1183,10 @@ require('lazy').setup({
         -- python = { 'isort', 'black' },
         -- python = { 'ruff_organize_imports' },
         -- python = { 'ruff_fix' },
-        markdown = { 'inject' },
+        markdown = { 'inject', 'prettier' },
+        -- json = { 'prettier' },
+        -- jsonc = { 'prettier' },
+
         --
         -- You can use 'stop_after_first' to run the first available formatter from the list
         -- javascript = { "prettierd", "prettier", stop_after_first = true },

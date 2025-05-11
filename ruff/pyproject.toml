@@ -4,6 +4,7 @@ line-length = 100
 fix = true
 
 [tool.ruff.lint]
+preview = true
 select = [
 	# flake8-2020
 	"YTT",
@@ -103,6 +104,8 @@ ignore = [
 	"PLW0603",
 	# unspecified-encoding
 	"PLW1514",
+	# raise-vanilla-args
+	"TRY003",
 
 ]
 
