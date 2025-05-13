@@ -898,25 +898,36 @@ require('lazy').setup({
             },
           },
         },
+        -- basedpyright = {
+        --   settings = {
+        --     basedpyright = {
+        --       disableLanguageServices = true,
+        --       disableOrganizeImports = true,
+        --       disableTypeChecking = true,
+        --       disableTaggedHints = true,
+        --     },
+        --   },
+        -- },
         pyright = {
-          -- autostart = false,
-          on_attach = function(client, bufnr)
-            -- Disable auto-completion
-            client.server_capabilities.completionProvider = nil
-
-            -- Disable code navigation capabilities
-            client.server_capabilities.definitionProvider = false
-            client.server_capabilities.declarationProvider = false
-            client.server_capabilities.implementationProvider = false
-            client.server_capabilities.referencesProvider = false
-
-            -- (Optional) Disable other navigation features if not needed
-            client.server_capabilities.documentSymbolProvider = false
-            client.server_capabilities.workspaceSymbolProvider = false
-
-            -- Leave hoverProvider enabled so that 'K' shows type info
-            client.server_capabilities.hoverProvider = true
-          end,
+          -- -- autostart = false,
+          -- on_attach = function(client, bufnr)
+          --   -- Disable auto-completion
+          --   -- client.server_capabilities.completionProvider = nil
+          --   client.server_capabilities.completionProvider = nil
+          --
+          --   -- Disable code navigation capabilities
+          --   client.server_capabilities.definitionProvider = false
+          --   client.server_capabilities.declarationProvider = false
+          --   client.server_capabilities.implementationProvider = false
+          --   client.server_capabilities.referencesProvider = false
+          --
+          --   -- (Optional) Disable other navigation features if not needed
+          --   client.server_capabilities.documentSymbolProvider = false
+          --   client.server_capabilities.workspaceSymbolProvider = false
+          --
+          --   -- Leave hoverProvider enabled so that 'K' shows type info
+          --   client.server_capabilities.hoverProvider = true
+          -- end,
           settings = {
             pyright = {
               disableOrganizeImports = true,
@@ -1025,36 +1036,96 @@ require('lazy').setup({
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
-            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
 
-            -- Disable completion for Pyright
+            -- -- Disable completion for Pyright
             if server_name == 'pyright' then
-              server.capabilities.textDocument.completion = nil
-              server.on_attach = function(client, bufnr)
-                client.server_capabilities.completionProvider = false -- Disable completionProvider capability
-                client.server_capabilities.definitionProvider = false -- Disable go-to-definition
-                -- client.server_capabilities.hoverProvider = false -- Disable hover documentation
-                client.server_capabilities.SignatureHelpProvider = false -- Handles function signature hints while typing
-                client.server_capabilities.ReferencesProvider = false -- Enables finding all references to a symbol
-                client.server_capabilities.DocumentSymbolProvider = false
-                client.server_capabilities.WorkspaceSymbolProvider = false
-                client.server_capabilities.CodeActionProvider = false --Handles code actions like quick fixes or refactoring options
-                client.server_capabilities.CodeLensProvider = false --Provides code lens annotations (e.g., references or tests)
-                client.server_capabilities.DocumentHighlightProvider = false --Highlights other occurrences of the symbol under the cursor
-                client.server_capabilities.DocumentFormattingProvider = false -- Provides full document formatting capabilities
-                client.server_capabilities.DocumentRangeFormattingProvider = false --Formats a selected range in a document
-                client.server_capabilities.RenameProvider = false --Enables symbol renaming support
-                client.server_capabilities.ImplementationProvider = false --Enables go-to implementation
-                client.server_capabilities.DiagnosticProvider = false
-                client.server_capabilities.InlayHintProvider = false --Supports inlay hints for parameter names or type hints inline in code
-                client.server_capabilities.TypeDefinitionProvider = false --Enables go-to type definition
-              end
+              -- server.capabilities.textDocument.completion = nil
+              -- server.on_attach = function(client, bufnr)
+              --   client.server_capabilities.completionProvider = false -- Disable completionProvider capability
+              --   client.server_capabilities.definitionProvider = false -- Disable go-to-definition
+              --   -- client.server_capabilities.hoverProvider = false -- Disable hover documentation
+              --   client.server_capabilities.SignatureHelpProvider = false -- Handles function signature hints while typing
+              --   client.server_capabilities.ReferencesProvider = false -- Enables finding all references to a symbol
+              --   client.server_capabilities.DocumentSymbolProvider = false
+              --   client.server_capabilities.WorkspaceSymbolProvider = false
+              --   client.server_capabilities.CodeActionProvider = false --Handles code actions like quick fixes or refactoring options
+              --   client.server_capabilities.CodeLensProvider = false --Provides code lens annotations (e.g., references or tests)
+              --   client.server_capabilities.DocumentHighlightProvider = false --Highlights other occurrences of the symbol under the cursor
+              --   client.server_capabilities.DocumentFormattingProvider = false -- Provides full document formatting capabilities
+              --   client.server_capabilities.DocumentRangeFormattingProvider = false --Formats a selected range in a document
+              --   client.server_capabilities.RenameProvider = false --Enables symbol renaming support
+              --   client.server_capabilities.ImplementationProvider = false --Enables go-to implementation
+              --   client.server_capabilities.DiagnosticProvider = false
+              --   client.server_capabilities.InlayHintProvider = false --Supports inlay hints for parameter names or type hints inline in code
+              --   client.server_capabilities.TypeDefinitionProvider = false --Enables go-to type definition
+              -- end
+
+              -- pyright_capabilities = {
+              --   textDocument = {
+              --     completion = { dynamicRegistration = false },
+              --     definition = { dynamicRegistration = false },
+              --     signatureHelp = { dynamicRegistration = false },
+              --     references = { dynamicRegistration = false },
+              --     documentSymbol = { dynamicRegistration = false },
+              --     workspaceSymbol = { dynamicRegistration = false },
+              --     codeAction = { dynamicRegistration = false },
+              --     codeLens = { dynamicRegistration = false },
+              --     documentHighlight = { dynamicRegistration = false },
+              --     formatting = { dynamicRegistration = false },
+              --     rangeFormatting = { dynamicRegistration = false },
+              --     rename = { dynamicRegistration = false },
+              --     implementation = { dynamicRegistration = false },
+              --     typeDefinition = { dynamicRegistration = false },
+              --     inlayHint = { dynamicRegistration = false },
+              --     hover = { dynamicRegistration = true }, -- we still want hover
+              --   },
+              -- }
+              -- server.capabilities = vim.tbl_deep_extend('force', {}, pyright_capabilities, server.capabilities or {})
+
+              -- 1) Build a minimal hover-only capabilities table for the initial handshake:
+              local hover_only = vim.tbl_deep_extend('force', {}, capabilities)
+              hover_only.textDocument.completion = nil
+              hover_only.textDocument.completionProvider = nil
+              hover_only.textDocument.signatureHelp = nil
+              hover_only.textDocument.definition = nil
+              hover_only.textDocument.declaration = nil
+              hover_only.textDocument.typeDefinition = nil
+              hover_only.textDocument.implementation = nil
+              hover_only.textDocument.references = nil
+              hover_only.textDocument.documentSymbol = nil
+              hover_only.textDocument.workspaceSymbol = nil
+              hover_only.textDocument.codeAction = nil
+              hover_only.textDocument.rename = nil
+              hover_only.textDocument.inlayHint = nil
+              hover_only.textDocument.foldingRange = nil
+              -- leave hover intact:
+              hover_only.textDocument.hover = capabilities.textDocument.hover
+
+              require('lspconfig').pyright.setup {
+                capabilities = hover_only,
+                -- 2) And scrub whatever sneaks through at runtime:
+                on_attach = function(client, bufnr)
+                  for cap, _ in pairs(client.server_capabilities) do
+                    if cap ~= 'hoverProvider' then
+                      client.server_capabilities[cap] = nil
+                    end
+                  end
+                  -- map `K` to hover
+                  vim.keymap.set('n', 'K', vim.lsp.buf.hover, {
+                    buffer = bufnr,
+                    desc = 'LSP: Hover (pyright)',
+                  })
+                end,
+              }
+            else
+              server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             end
 
             require('lspconfig')[server_name].setup(server)
           end,
         },
       }
+
       -- Function to install required plugins
       local function ensure_pylsp_plugins()
         local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
@@ -1226,6 +1297,11 @@ require('lazy').setup({
         opts = {},
       },
       'folke/lazydev.nvim',
+      'kristijanhusak/vim-dadbod-completion',
+      'moyiz/blink-emoji.nvim',
+      -- 'bydlw98/blink-cmp-env',
+      'SergioRibera/cmp-dotenv',
+      'ray-x/cmp-sql',
     },
     --- @module 'blink.cmp'
     --- @type blink.cmp.Config
@@ -1254,6 +1330,12 @@ require('lazy').setup({
         -- See :h blink-cmp-config-keymap for defining your own keymap
         preset = 'default',
 
+        ['<A-CR>'] = {
+          function(cmp)
+            cmp.show()
+          end,
+        },
+
         -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
         --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
       },
@@ -1267,13 +1349,69 @@ require('lazy').setup({
       completion = {
         -- By default, you may press `<c-space>` to show the documentation.
         -- Optionally, set `auto_show = true` to show the documentation after a delay.
-        documentation = { auto_show = false, auto_show_delay_ms = 500 },
+        documentation = { auto_show = true, auto_show_delay_ms = 500, window = { border = 'rounded' } },
+        menu = { border = 'rounded' },
       },
 
       sources = {
-        default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        -- default = { 'lsp', 'path', 'snippets', 'lazydev' },
+        default = { 'lsp', 'path', 'lazydev', 'emoji', 'dotenv' },
+        per_filetype = {
+          sql = { 'snippets', 'dadbod', 'sql' },
+        },
         providers = {
           lazydev = { module = 'lazydev.integrations.blink', score_offset = 100 },
+          dadbod = { name = 'Dadbod', module = 'vim_dadbod_completion.blink' },
+          emoji = {
+            module = 'blink-emoji',
+            name = 'Emoji',
+            score_offset = 15, -- Tune by preference
+            opts = { insert = true }, -- Insert emoji (default) or complete its name
+            should_show_items = function()
+              return vim.tbl_contains(
+                -- Enable emoji completion only for git commits and markdown.
+                -- By default, enabled for all file-types.
+                { 'gitcommit', 'markdown', 'python' },
+                vim.o.filetype
+              )
+            end,
+          },
+          -- env = {
+          --   name = 'Env',
+          --   module = 'blink-cmp-env',
+          --   --- @type blink-cmp-env.Options
+          --   opts = {
+          --     -- item_kind = require('blink.cmp.types').CompletionItemKind.Variable,
+          --     show_braces = false,
+          --     show_documentation_window = true,
+          --   },
+          -- },
+          dotenv = {
+            name = 'dotenv',
+            module = 'blink.compat.source',
+
+            -- all blink.cmp source config options work as normal:
+            score_offset = -3,
+
+            -- this table is passed directly to the proxied completion source
+            -- as the `option` field in nvim-cmp's source config
+            --
+            -- this is NOT the same as the opts in a plugin's lazy.nvim spec
+            opts = { path = '.' },
+          },
+          sql = {
+            name = 'sql',
+            module = 'blink.compat.source',
+
+            -- all blink.cmp source config options work as normal:
+            score_offset = -3,
+
+            -- this table is passed directly to the proxied completion source
+            -- as the `option` field in nvim-cmp's source config
+            --
+            -- this is NOT the same as the opts in a plugin's lazy.nvim spec
+            opts = {},
+          },
         },
       },
 
@@ -1286,10 +1424,11 @@ require('lazy').setup({
       -- the rust implementation via `'prefer_rust_with_warning'`
       --
       -- See :h blink-cmp-config-fuzzy for more information
-      fuzzy = { implementation = 'lua' },
+      -- fuzzy = { implementation = 'lua' },
+      fuzzy = { implementation = 'prefer_rust_with_warning' },
 
       -- Shows a signature help window while you type arguments for a function
-      signature = { enabled = true },
+      signature = { enabled = true, window = { border = 'rounded' } },
     },
   },
 

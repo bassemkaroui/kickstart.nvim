@@ -36,22 +36,39 @@ return {
     end,
     config = true,
   },
+  -- {
+  --   'numToStr/FTerm.nvim',
+  --   config = function()
+  --     local map = vim.api.nvim_set_keymap
+  --     local opts = { noremap = true, silent = true }
+  --     require('FTerm').setup {
+  --       blend = 5,
+  --       dimensions = {
+  --         height = 0.90,
+  --         width = 0.90,
+  --         x = 0.5,
+  --         y = 0.5,
+  --       },
+  --     }
+  --     vim.keymap.set('n', '<A-t>', '<CMD>lua require("FTerm").toggle()<CR>')
+  --     vim.keymap.set('t', '<A-t>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+  --   end,
+  -- },
   {
-    'numToStr/FTerm.nvim',
+    'akinsho/toggleterm.nvim',
+    version = '*',
     config = function()
-      local map = vim.api.nvim_set_keymap
-      local opts = { noremap = true, silent = true }
-      require('FTerm').setup {
-        blend = 5,
-        dimensions = {
-          height = 0.90,
-          width = 0.90,
-          x = 0.5,
-          y = 0.5,
+      require('toggleterm').setup {
+        size = 20, -- float size in lines (or function)
+        open_mapping = [[<A-t>]], -- your toggle key
+        direction = 'float', -- float | split | tab
+        float_opts = { -- only for float
+          border = 'curved', -- single|double|rounded|curved|none
+          winblend = 0, -- transparency
         },
+        start_in_insert = true, -- auto-enter insert
+        persist_size = true, -- remember last size
       }
-      vim.keymap.set('n', '<A-t>', '<CMD>lua require("FTerm").toggle()<CR>')
-      vim.keymap.set('t', '<A-t>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
     end,
   },
   {
@@ -842,18 +859,18 @@ return {
       require('bigfile').setup(opts)
     end,
   },
-  {
-    'kelly-lin/ranger.nvim',
-    config = function()
-      require('ranger-nvim').setup { replace_netrw = true }
-      vim.api.nvim_set_keymap('n', '<leader>lr', '', {
-        noremap = true,
-        callback = function()
-          require('ranger-nvim').open(true)
-        end,
-      })
-    end,
-  },
+  -- {
+  --   'kelly-lin/ranger.nvim',
+  --   config = function()
+  --     require('ranger-nvim').setup { replace_netrw = true }
+  --     vim.api.nvim_set_keymap('n', '<leader>lr', '', {
+  --       noremap = true,
+  --       callback = function()
+  --         require('ranger-nvim').open(true)
+  --       end,
+  --     })
+  --   end,
+  -- },
   {
     'mikavilpas/yazi.nvim',
     event = 'VeryLazy',
@@ -884,7 +901,7 @@ return {
     },
     opts = {
       -- if you want to open yazi instead of netrw, see below for more info
-      open_for_directories = false,
+      open_for_directories = true,
       keymaps = {
         show_help = '<f1>',
       },
@@ -895,5 +912,14 @@ return {
       -- vim.g.loaded_netrw = 1
       vim.g.loaded_netrwPlugin = 1
     end,
+  },
+  {
+    'saghen/blink.compat',
+    -- use the latest release, via version = '*', if you also use the latest release for blink.cmp
+    version = '*',
+    -- lazy.nvim will automatically load the plugin when it's required by blink.cmp
+    lazy = true,
+    -- make sure to set opts so that lazy.nvim calls blink.compat's setup
+    opts = {},
   },
 }
