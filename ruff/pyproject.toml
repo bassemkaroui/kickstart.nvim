@@ -60,6 +60,10 @@ select = [
 	"ICN001",
 	# pylint
 	"PL",
+	# flake8-unused-arguments
+	"ARG",
+	# FastAPI
+	"FAST",
 ]
 ignore = [
 	# LineTooLong

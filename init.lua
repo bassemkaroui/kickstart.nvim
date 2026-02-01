@@ -100,11 +100,12 @@ vim.g.have_nerd_font = true -- <CUSTOM CHANGE>
 
 -- Hightlight a column, good to know if you reached 80 characters for example
 vim.opt.colorcolumn = '100' -- <CUSTOM CHANGE>
+vim.opt_local.cursorcolumn = false
 -- Make line numbers default
 vim.o.number = true
 -- You can also add relative line numbers, to help with jumping.
 --  Experiment for yourself to see if you like it!
--- vim.o.relativenumber = true
+vim.o.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
 vim.o.mouse = 'a'
@@ -185,25 +186,28 @@ vim.opt.termguicolors = true -- needed for nvim-notify plugin --<CUSTOM CHANGE>
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- vim.opt.incsearch = true -- <CUSTOM CHANGE>
 
-vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' }) -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
-vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv") -- <CUSTOM CHANGE>
-vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv") -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'J', 'mzJ`z') --<CUSTOM CHANGE>
-vim.keymap.set('x', '<leader>p', '"_dP') --<CUSTOM CHANGE>
-vim.keymap.set('v', '<leader>d', '"_d') --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]]) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' })                                      -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' })                       -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' })                       -- <CUSTOM CHANGE>
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")                                                                           -- <CUSTOM CHANGE>
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")                                                                           -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'J', 'mzJ`z')                                                                                      --<CUSTOM CHANGE>
+vim.keymap.set('x', '<leader>p', '"_dP')                                                                               --<CUSTOM CHANGE>
+vim.keymap.set('v', '<leader>d', '"_d')                                                                                --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])                              --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>x<leader>', '<cmd>!chmod +x %<CR>', { desc = 'Make the file executable', silent = true }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>ta', function()
   vim.opt.relativenumber = not vim.opt.relativenumber:get()
   vim.opt.number = true
 end, { noremap = true, silent = true, desc = '[T]oggle to [a]bsolute numbers' }) --<CUSTOM CHANGE>
-vim.keymap.set('i', 'jj', '<Esc>') --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true }) --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>tv', function()
+  vim.opt_local.cursorcolumn = not vim.opt_local.cursorcolumn:get()
+end, { noremap = true, silent = true, desc = '[T]oggle to [v]ertical cursor column' }) --<CUSTOM CHANGE>
+vim.keymap.set('i', 'jj', '<Esc>')                                                     --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true })             --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true })              --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true })             --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true })             --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>tS', function()
   if vim.o.laststatus == 3 then
     vim.o.laststatus = 2
@@ -252,12 +256,12 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- vim.keymap.set('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'Open current buffer in a new tab' }) --<CUSTOM CHANGE>
 
 -- Buffer management
-vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' }) --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' })                 --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' })             --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' })                 --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' })               --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' })             --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' })    --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>bp', '<cmd>b#<CR>', { desc = 'Go back to the previous Buffer' }) --<CUSTOM CHANGE>
 
 -- [[ Basic Autocommands ]]
@@ -354,7 +358,7 @@ require('lazy').setup({
   -- Then, because we use the `opts` key (recommended), the configuration runs
   -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
-  { -- Useful plugin to show you pending keybinds.
+  {                     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -435,7 +439,7 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
       'folke/todo-comments.nvim',
     },
     config = function()
@@ -559,30 +563,30 @@ require('lazy').setup({
         end
 
         pickers
-          .new({}, {
-            prompt_title = 'Section Markers',
-            finder = finders.new_table {
-              results = entries,
-              entry_maker = function(entry)
-                return {
-                  value = entry,
-                  display = entry.line,
-                  ordinal = entry.line,
-                }
+            .new({}, {
+              prompt_title = 'Section Markers',
+              finder = finders.new_table {
+                results = entries,
+                entry_maker = function(entry)
+                  return {
+                    value = entry,
+                    display = entry.line,
+                    ordinal = entry.line,
+                  }
+                end,
+              },
+              sorter = conf.generic_sorter {},
+              previewer = false, -- disable preview
+              attach_mappings = function(prompt_bufnr, map)
+                actions.select_default:replace(function()
+                  actions.close(prompt_bufnr)
+                  local selection = action_state.get_selected_entry()
+                  vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
+                end)
+                return true
               end,
-            },
-            sorter = conf.generic_sorter {},
-            previewer = false, -- disable preview
-            attach_mappings = function(prompt_bufnr, map)
-              actions.select_default:replace(function()
-                actions.close(prompt_bufnr)
-                local selection = action_state.get_selected_entry()
-                vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
-              end)
-              return true
-            end,
-          })
-          :find()
+            })
+            :find()
       end, { desc = 'Jump to # --- section' })
     end,
   },
@@ -612,7 +616,7 @@ require('lazy').setup({
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
-      { 'j-hui/fidget.nvim', opts = {} },
+      { 'j-hui/fidget.nvim',    opts = {} },
 
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
@@ -827,7 +831,7 @@ require('lazy').setup({
           },
           filetypes = { 'json', 'jsonc', 'json5' },
         },
-        taplo = {},
+        -- taplo = {},
         -- ruff = {
         --   init_options = {
         --     configuration = '~/.config/nvim/ruff/pyproject.toml',
@@ -836,119 +840,106 @@ require('lazy').setup({
         --     },
         --   },
         -- },
-        -- ruff_lsp = {},
         bashls = {},
-        pylsp = {
-          settings = {
-            -- configurationSources = { 'flake8' },
-            pylsp = {
-              plugins = {
-                ruff = {
-                  enabled = true,
-                  formatEnabled = true,
-                  config = '~/.config/nvim/ruff/pyproject.toml',
-                  format = { 'I', 'F541' },
-                  unsafeFixes = true,
-                },
-                -- -- pylsp_rope = {
-                -- --   enabled = true,
-                -- -- },
-                -- -- rope_completion = { enabled = true },
-                pylsp_mypy = {
-                  enabled = true,
-                  dmypy = true,
-                  live_mode = false,
-                  report_progress = true,
-                  overrides = {
-                    true,
-                    '--ignore-missing-imports', -- Add the same flag you would use in mypy.ini
-                  },
-                },
-                -- pylint = {
-                --   enabled = true,
-                --   args = {
-                --     '--disable=C0111,C0103', -- Disable missing docstring and naming convention checks
-                --     '--init-hook=from pylint.config import find_pylintrc; import os, sys; sys.path.append(os.path.dirname(find_pylintrc()))',
-                --   },
-                -- },
-                pycodestyle = { enabled = false },
-                mccabe = { enabled = false },
-                pyflakes = { enabled = false },
-                -- flake8 = {
-                --   enabled = true,
-                --   maxLineLength = 88,
-                --   ignore = { 'E203', 'W503', 'E701' }, -- Ignore whitespace before ':' and line break before binary operator
-                -- },
-                -- isort = {
-                --   enabled = true,
-                --   settings = {
-                --     profile = 'black',
-                --     -- force_to_top = true, -- Ensures imports are sorted to the top of the file
-                --   },
-                -- },
-                -- black = {
-                --   enabled = true,
-                --   line_length = 88,
-                -- },
-                -- jedi_completion = { enabled = true }, -- Ensure Jedi is enabled for better doc lookup
-                -- jedi_hover = { enabled = true },
-                -- jedi_references = { enabled = true },
-                -- jedi_signature_help = { enabled = true },
-              },
-            },
-          },
-        },
-        -- basedpyright = {
+        -- pylsp = {
         --   settings = {
-        --     basedpyright = {
-        --       disableLanguageServices = true,
-        --       disableOrganizeImports = true,
-        --       disableTypeChecking = true,
-        --       disableTaggedHints = true,
+        --     -- configurationSources = { 'flake8' },
+        --     pylsp = {
+        --       plugins = {
+        --         ruff = {
+        --           enabled = true,
+        --           formatEnabled = true,
+        --           config = '~/.config/nvim/ruff/pyproject.toml',
+        --           format = { 'I', 'F541' },
+        --           unsafeFixes = true,
+        --         },
+        --         pycodestyle = { enabled = false },
+        --         mccabe = { enabled = false },
+        --         pyflakes = { enabled = false },
+        --         autopep8 = { enabled = false },
+        --         flake8 = { enabled = false },
+        --         isort = { enabled = false },
+        --         black = { enabled = false },
+        --         pylsp_rope = { enabled = false },
+        --         pylint = { enabled = false },
+        --         yapf = { enabled = false },
+        --         pylsp_mypy = {
+        --           enabled = true,
+        --           dmypy = true,
+        --           live_mode = false,
+        --           report_progress = true,
+        --           overrides = {
+        --             true,
+        --             '--ignore-missing-imports', -- Add the same flag you would use in mypy.ini
+        --           },
+        --         },
+        --       },
         --     },
         --   },
         -- },
-        pyright = {
-          -- -- autostart = false,
-          -- on_attach = function(client, bufnr)
-          --   -- Disable auto-completion
-          --   -- client.server_capabilities.completionProvider = nil
-          --   client.server_capabilities.completionProvider = nil
-          --
-          --   -- Disable code navigation capabilities
-          --   client.server_capabilities.definitionProvider = false
-          --   client.server_capabilities.declarationProvider = false
-          --   client.server_capabilities.implementationProvider = false
-          --   client.server_capabilities.referencesProvider = false
-          --
-          --   -- (Optional) Disable other navigation features if not needed
-          --   client.server_capabilities.documentSymbolProvider = false
-          --   client.server_capabilities.workspaceSymbolProvider = false
-          --
-          --   -- Leave hoverProvider enabled so that 'K' shows type info
-          --   client.server_capabilities.hoverProvider = true
-          -- end,
-          settings = {
-            pyright = {
-              disableOrganizeImports = true,
-              disableTypeChecking = true,
-              disableTaggedHints = true,
-            },
-            python = {
-              analysis = {
-                autoSearchPaths = true,
-                diagnosticMode = 'off', -- Disables diagnostics
-                diagnosticSeverityOverrides = {
-                  --   reportMissingModuleSource = 'none',
-                  --   reportMissingImports = 'none',
-                  reportUndefinedVariable = 'none',
-                },
-                useLibraryCodeForTypes = true,
-                typeCheckingMode = 'off',
-              },
-            },
-          },
-        },
+        -- basedpyright = {
+        --   settings = {
+        --     basedpyright = {
+        --       disableOrganizeImports = true,
+        --       disableTaggedHints = true,
+        --       analysis = {
+        --         autoSearchPaths = true,
+        --         diagnosticMode = 'openFilesOnly',
+        --         useLibraryCodeForTypes = true,
+        --         inlayHints = { callArgumentNames = true },
+        --         typeCheckingMode = 'off',
+        --       },
+        --     },
+        --   },
+        -- },
+        pyright = {},
+        -- pyright = {
+        --   -- -- autostart = false,
+        --   -- on_attach = function(client, bufnr)
+        --   --   if client.name == 'pyright' then
+        --   --     -- Disable auto-completion
+        --   --     -- client.server_capabilities.completionProvider = nil
+        --   --     client.server_capabilities.completionProvider = nil
+        --   --
+        --   --     -- Disable code navigation capabilities
+        --   --     client.server_capabilities.definitionProvider = false
+        --   --     client.server_capabilities.declarationProvider = false
+        --   --     client.server_capabilities.implementationProvider = false
+        --   --     client.server_capabilities.referencesProvider = false
+        --   --     client.server_capabilities.documentSymbolProvider = false
+        --   --     client.server_capabilities.workspaceSymbolProvider = false
+        --   --     client.server_capabilities.typeDefinitionProvider = false
+        --   --     client.server_capabilities.signatureHelpProvider = false
+        --   --     client.server_capabilities.renameProvider = false
+        --   --     client.server_capabilities.codeActionProvider = false
+        --   --     client.server_capabilities.formattingProvider = false
+        --   --     -- client.server_capabilities.documentHighlightProvider = false
+        --   --     client.server_capabilities.semanticTokensProvider = false
+        --   --
+        --   --     -- Leave hoverProvider enabled so that 'K' shows type info
+        --   --     client.server_capabilities.hoverProvider = true
+        --   --   end
+        --   -- end,
+        --   settings = {
+        --     pyright = {
+        --       disableOrganizeImports = true,
+        --       disableTaggedHints = true,
+        --     },
+        --     python = {
+        --       analysis = {
+        --         autoSearchPaths = true,
+        --         diagnosticMode = 'openFilesOnly', -- Disables diagnostics
+        --         diagnosticSeverityOverrides = {
+        --           --   reportMissingModuleSource = 'none',
+        --           --   reportMissingImports = 'none',
+        --           reportUndefinedVariable = 'none',
+        --         },
+        --         useLibraryCodeForTypes = true,
+        --         typeCheckingMode = 'off',
+        --       },
+        --     },
+        --   },
+        -- },
         debugpy = {},
         ansiblels = {},
         docker_compose_language_service = {},
@@ -964,6 +955,11 @@ require('lazy').setup({
           settings = {
             yaml = {
               schemas = {
+                -- kubernetes = {
+                --   '**/*.k8s.{yml,yaml}',
+                --   'k8s/**/*.{yml,yaml}',
+                --   'manifests/**/*.{yml,yaml}',
+                -- },
                 ['https://json.schemastore.org/github-workflow.json'] = '/.github/workflows/*',
                 ['https://json.schemastore.org/pre-commit-config.json'] = '/.pre-commit-config.yaml',
                 ['https://json.schemastore.org/gitlab-ci'] = '*gitlab-ci*.{yml,yaml}',
@@ -974,8 +970,9 @@ require('lazy').setup({
                   '*docker-compose*.{yml,yaml}',
                   '*compose*.{yml,yaml}',
                 },
-                ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] = '*flow*.{yml,yaml}',
-                ['http://json.schemastore.org/kustomization'] = 'kustomization.{yml,yaml}',
+                ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] =
+                '*flow*.{yml,yaml}',
+                -- ['http://json.schemastore.org/kustomization'] = 'kustomization.{yml,yaml}',
               },
             },
           },
@@ -1036,185 +1033,193 @@ require('lazy').setup({
             -- This handles overriding only values explicitly passed
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for ts_ls)
-
-            -- -- Disable completion for Pyright
-            if server_name == 'pyright' then
-              -- server.capabilities.textDocument.completion = nil
-              -- server.on_attach = function(client, bufnr)
-              --   client.server_capabilities.completionProvider = false -- Disable completionProvider capability
-              --   client.server_capabilities.definitionProvider = false -- Disable go-to-definition
-              --   -- client.server_capabilities.hoverProvider = false -- Disable hover documentation
-              --   client.server_capabilities.SignatureHelpProvider = false -- Handles function signature hints while typing
-              --   client.server_capabilities.ReferencesProvider = false -- Enables finding all references to a symbol
-              --   client.server_capabilities.DocumentSymbolProvider = false
-              --   client.server_capabilities.WorkspaceSymbolProvider = false
-              --   client.server_capabilities.CodeActionProvider = false --Handles code actions like quick fixes or refactoring options
-              --   client.server_capabilities.CodeLensProvider = false --Provides code lens annotations (e.g., references or tests)
-              --   client.server_capabilities.DocumentHighlightProvider = false --Highlights other occurrences of the symbol under the cursor
-              --   client.server_capabilities.DocumentFormattingProvider = false -- Provides full document formatting capabilities
-              --   client.server_capabilities.DocumentRangeFormattingProvider = false --Formats a selected range in a document
-              --   client.server_capabilities.RenameProvider = false --Enables symbol renaming support
-              --   client.server_capabilities.ImplementationProvider = false --Enables go-to implementation
-              --   client.server_capabilities.DiagnosticProvider = false
-              --   client.server_capabilities.InlayHintProvider = false --Supports inlay hints for parameter names or type hints inline in code
-              --   client.server_capabilities.TypeDefinitionProvider = false --Enables go-to type definition
-              -- end
-
-              -- pyright_capabilities = {
-              --   textDocument = {
-              --     completion = { dynamicRegistration = false },
-              --     definition = { dynamicRegistration = false },
-              --     signatureHelp = { dynamicRegistration = false },
-              --     references = { dynamicRegistration = false },
-              --     documentSymbol = { dynamicRegistration = false },
-              --     workspaceSymbol = { dynamicRegistration = false },
-              --     codeAction = { dynamicRegistration = false },
-              --     codeLens = { dynamicRegistration = false },
-              --     documentHighlight = { dynamicRegistration = false },
-              --     formatting = { dynamicRegistration = false },
-              --     rangeFormatting = { dynamicRegistration = false },
-              --     rename = { dynamicRegistration = false },
-              --     implementation = { dynamicRegistration = false },
-              --     typeDefinition = { dynamicRegistration = false },
-              --     inlayHint = { dynamicRegistration = false },
-              --     hover = { dynamicRegistration = true }, -- we still want hover
-              --   },
-              -- }
-              -- server.capabilities = vim.tbl_deep_extend('force', {}, pyright_capabilities, server.capabilities or {})
-
-              -- 1) Build a minimal hover-only capabilities table for the initial handshake:
-              local hover_only = vim.tbl_deep_extend('force', {}, capabilities)
-              hover_only.textDocument.completion = nil
-              hover_only.textDocument.completionProvider = nil
-              hover_only.textDocument.signatureHelp = nil
-              hover_only.textDocument.definition = nil
-              hover_only.textDocument.declaration = nil
-              hover_only.textDocument.typeDefinition = nil
-              hover_only.textDocument.implementation = nil
-              hover_only.textDocument.references = nil
-              hover_only.textDocument.documentSymbol = nil
-              hover_only.textDocument.workspaceSymbol = nil
-              hover_only.textDocument.codeAction = nil
-              hover_only.textDocument.rename = nil
-              hover_only.textDocument.inlayHint = nil
-              hover_only.textDocument.foldingRange = nil
-              -- leave hover intact:
-              hover_only.textDocument.hover = capabilities.textDocument.hover
-
-              require('lspconfig').pyright.setup {
-                capabilities = hover_only,
-                -- 2) And scrub whatever sneaks through at runtime:
-                on_attach = function(client, bufnr)
-                  for cap, _ in pairs(client.server_capabilities) do
-                    if cap ~= 'hoverProvider' then
-                      client.server_capabilities[cap] = nil
-                    end
-                  end
-                  -- map `K` to hover
-                  vim.keymap.set('n', 'K', vim.lsp.buf.hover, {
-                    buffer = bufnr,
-                    desc = 'LSP: Hover (pyright)',
-                  })
-                end,
-              }
-            else
-              server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            end
-
+            server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
             require('lspconfig')[server_name].setup(server)
           end,
         },
       }
 
-      -- Function to install required plugins
-      local function ensure_pylsp_plugins()
-        local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
-        if vim.fn.executable(vim.fn.expand(pip_path)) == 1 then
-          -- local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy', 'pylsp-rope' } --
-          local pylsp_plugins = { 'python-lsp-ruff', 'pylsp-mypy' } --
-          for _, plugin in ipairs(pylsp_plugins) do
-            local handle = io.popen(pip_path .. ' show ' .. plugin)
-            local result = handle:read '*a'
-            handle:close()
-            if result == '' then
-              vim.cmd('PylspInstall ' .. plugin)
-            end
-          end
-        end
-      end
-      -- Ensure the plugins are installed only once per session
-      local plugins_installed = true
+      require('lspconfig').yamlls.setup {
+        capabilities = capabilities,
+        settings = {
+          yaml = {
+            schemas = {
+              ['https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.34.1-standalone-strict/all.json'] = {
+                '**/*.k8s.{yml,yaml}',
+                'k8s/**/*.{yml,yaml}',
+                'manifests/**/*.{yml,yaml}',
+              },
+            },
+          },
+        },
+      }
 
-      local function install_plugins_once()
-        if not plugins_installed then
-          ensure_pylsp_plugins()
-          plugins_installed = true
-        end
-      end
+      -- < REMOVE CAPABILITIES FROM PYRIGHT >
+      -- vim.api.nvim_create_autocmd('LspAttach', {
+      --   group = vim.api.nvim_create_augroup('only-hover-pyright', { clear = true }),
+      --   callback = function(args)
+      --     local client = vim.lsp.get_client_by_id(args.data.client_id)
+      --     if not client or client.name ~= 'pyright' then
+      --       return
+      --     end
+      --
+      --     -- disable all providers except hover
+      --     client.server_capabilities.completionProvider = nil
+      --     client.server_capabilities.definitionProvider = false
+      --     client.server_capabilities.referencesProvider = false
+      --     client.server_capabilities.documentSymbolProvider = false
+      --     client.server_capabilities.workspaceSymbolProvider = false
+      --     client.server_capabilities.declarationProvider = false
+      --     client.server_capabilities.implementationProvider = false
+      --     client.server_capabilities.typeDefinitionProvider = false
+      --     client.server_capabilities.signatureHelpProvider = nil
+      --     client.server_capabilities.renameProvider = false
+      --     client.server_capabilities.codeActionProvider = false
+      --     client.server_capabilities.formattingProvider = false
+      --     -- client.server_capabilities.documentHighlightProvider = false
+      --     client.server_capabilities.semanticTokensProvider = nil
+      --     -- leave hoverProvider alone (i.e. true)
+      --   end,
+      -- })
 
-      vim.api.nvim_create_autocmd('LspAttach', {
-        callback = function(args)
-          local client = vim.lsp.get_client_by_id(args.data.client_id)
-          if client.name == 'pylsp' then
-            install_plugins_once()
-          end
-        end,
-      })
+      -- -- < INSTALL PYLSP PLUGINS >
+      -- -- Function to install required plugins
+      -- local function ensure_pylsp_plugins()
+      --   local pip_path = '~/.local/share/nvim/mason/packages/python-lsp-server/venv/bin/pip'
+      --   if vim.fn.executable(vim.fn.expand(pip_path)) == 1 then
+      --     -- local pylsp_plugins = { 'python-lsp-black', 'python-lsp-isort', 'pylsp-mypy', 'pylsp-rope' } --
+      --     -- local pylsp_plugins = { 'python-lsp-ruff', 'pylsp-mypy' } --
+      --     local pylsp_plugins = { 'pylsp-mypy' } --
+      --     for _, plugin in ipairs(pylsp_plugins) do
+      --       local handle = io.popen(pip_path .. ' show ' .. plugin)
+      --       local result = handle:read '*a'
+      --       handle:close()
+      --       if result == '' then
+      --         vim.cmd('PylspInstall ' .. plugin)
+      --       end
+      --     end
+      --   end
+      -- end
+      -- -- Ensure the plugins are installed only once per session
+      -- local plugins_installed = true
+      --
+      -- local function install_plugins_once()
+      --   if not plugins_installed then
+      --     ensure_pylsp_plugins()
+      --     plugins_installed = true
+      --   end
+      -- end
+      --
+      -- vim.api.nvim_create_autocmd('LspAttach', {
+      --   callback = function(args)
+      --     local client = vim.lsp.get_client_by_id(args.data.client_id)
+      --     if client.name == 'pylsp' then
+      --       install_plugins_once()
+      --     end
+      --   end,
+      -- })
 
-      -- Disable pylsp for floating windows
-      -- Create a global variable to track the toggle state
-      _G.pylsp_detach_floating_enabled = true
+      -- -- < DISABLE PYLSP FOR FLOATING WINDOWS >
+      -- -- Create a global variable to track the toggle state
+      -- _G.pylsp_detach_floating_enabled = true
+      --
+      -- -- Function to toggle the functionality
+      -- function _G.toggle_pylsp_detach_floating()
+      --   _G.pylsp_detach_floating_enabled = not _G.pylsp_detach_floating_enabled
+      --
+      --   -- Re-attach or detach LSP clients based on the new state
+      --   local clients = vim.lsp.get_clients()
+      --   local win_config = vim.api.nvim_win_get_config(0)
+      --   if win_config.relative ~= '' then -- Check if it's a floating window
+      --     for _, client in ipairs(clients) do
+      --       if client.name == 'pylsp' then
+      --         if _G.pylsp_detach_floating_enabled then
+      --           -- Detach if the feature is enabled
+      --           if vim.lsp.buf_is_attached(0, client.id) then
+      --             vim.lsp.buf_detach_client(0, client.id)
+      --           end
+      --         else
+      --           -- Attach if the feature is disabled
+      --           if not vim.lsp.buf_is_attached(0, client.id) then
+      --             vim.lsp.buf_attach_client(0, client.id)
+      --           end
+      --         end
+      --       end
+      --     end
+      --   end
+      --
+      --   print('pylsp detachment for floating windows is now ' .. (_G.pylsp_detach_floating_enabled and 'enabled' or 'disabled'))
+      -- end
+      --
+      -- -- Create an augroup for the autocmd
+      -- local augroup = vim.api.nvim_create_augroup('FloatingWindowFix', {})
+      --
+      -- -- Create the autocmd
+      -- vim.api.nvim_create_autocmd('BufWinEnter', {
+      --   group = augroup,
+      --   pattern = '*',
+      --   callback = function()
+      --     if _G.pylsp_detach_floating_enabled and vim.api.nvim_win_get_config(0).relative ~= '' then
+      --       -- Detach LSP clients from floating windows
+      --       local clients = vim.lsp.get_clients()
+      --       for _, client in ipairs(clients) do
+      --         if client.name == 'pylsp' and vim.lsp.buf_is_attached(0, client.id) then
+      --           vim.lsp.buf_detach_client(0, client.id)
+      --         end
+      --       end
+      --     end
+      --   end,
+      -- })
+      --
+      -- -- Create a keymap for toggling
+      -- vim.api.nvim_set_keymap('n', '<leader>tp', '<CMD>lua toggle_pylsp_detach_floating()<CR>', { desc = 'Toggle lsp for floating windows' })
 
-      -- Function to toggle the functionality
-      function _G.toggle_pylsp_detach_floating()
-        _G.pylsp_detach_floating_enabled = not _G.pylsp_detach_floating_enabled
-
-        -- Re-attach or detach LSP clients based on the new state
-        local clients = vim.lsp.get_clients()
-        local win_config = vim.api.nvim_win_get_config(0)
-        if win_config.relative ~= '' then -- Check if it's a floating window
-          for _, client in ipairs(clients) do
-            if client.name == 'pylsp' then
-              if _G.pylsp_detach_floating_enabled then
-                -- Detach if the feature is enabled
-                if vim.lsp.buf_is_attached(0, client.id) then
-                  vim.lsp.buf_detach_client(0, client.id)
-                end
-              else
-                -- Attach if the feature is disabled
-                if not vim.lsp.buf_is_attached(0, client.id) then
-                  vim.lsp.buf_attach_client(0, client.id)
-                end
-              end
-            end
-          end
-        end
-
-        print('pylsp detachment for floating windows is now ' .. (_G.pylsp_detach_floating_enabled and 'enabled' or 'disabled'))
-      end
-
-      -- Create an augroup for the autocmd
-      local augroup = vim.api.nvim_create_augroup('FloatingWindowFix', {})
-
-      -- Create the autocmd
-      vim.api.nvim_create_autocmd('BufWinEnter', {
-        group = augroup,
-        pattern = '*',
-        callback = function()
-          if _G.pylsp_detach_floating_enabled and vim.api.nvim_win_get_config(0).relative ~= '' then
-            -- Detach LSP clients from floating windows
-            local clients = vim.lsp.get_clients()
-            for _, client in ipairs(clients) do
-              if client.name == 'pylsp' and vim.lsp.buf_is_attached(0, client.id) then
-                vim.lsp.buf_detach_client(0, client.id)
-              end
-            end
-          end
-        end,
-      })
-
-      -- Create a keymap for toggling
-      vim.api.nvim_set_keymap('n', '<leader>tp', '<CMD>lua toggle_pylsp_detach_floating()<CR>', { desc = 'Toggle lsp for floating windows' })
+      -- -- < DISABLE PYLSP FOR FLOATING WINDOWS - METHOD 2 >
+      -- -- Track whether detachment in floats is enabled
+      -- _G.detach_in_floats = true
+      -- function _G.toggle_detach_in_floats()
+      --   _G.detach_in_floats = not _G.detach_in_floats
+      --   print('Float‐window LSP detachment is now ' .. (_G.detach_in_floats and 'enabled' or 'disabled'))
+      -- end
+      --
+      -- -- Autocmd to detach in floating windows
+      -- local float_grp = vim.api.nvim_create_augroup('FloatLspDetach', {})
+      -- vim.api.nvim_create_autocmd('BufWinEnter', {
+      --   group = float_grp,
+      --   callback = function()
+      --     if not _G.detach_in_floats then
+      --       return
+      --     end
+      --     local cfg = vim.api.nvim_win_get_config(0)
+      --     if cfg.relative ~= '' then
+      --       for _, client in ipairs(vim.lsp.get_clients { bufnr = 0 }) do
+      --         vim.lsp.buf_detach_client(0, client.id)
+      --       end
+      --     end
+      --   end,
+      -- })
+      -- -- Create an augroup for the autocmd
+      -- local augroup = vim.api.nvim_create_augroup('FloatingWindowFix', {})
+      --
+      -- -- Create the autocmd
+      -- vim.api.nvim_create_autocmd('BufWinEnter', {
+      --   group = augroup,
+      --   pattern = '*',
+      --   callback = function()
+      --     if _G.toggle_detach_in_floats and vim.api.nvim_win_get_config(0).relative ~= '' then
+      --       -- Detach LSP clients from floating windows
+      --       local clients = vim.lsp.get_clients()
+      --       for _, client in ipairs(clients) do
+      --         if client.name == 'pylsp' and vim.lsp.buf_is_attached(0, client.id) then
+      --           vim.lsp.buf_detach_client(0, client.id)
+      --         end
+      --       end
+      --     end
+      --   end,
+      -- })
+      -- -- Keymap to toggle
+      -- -- vim.keymap.set('n', '<leader>tp', _G.toggle_detach_in_floats, { desc = 'Toggle LSP detach in floating windows' })
+      -- vim.keymap.set('n', '<leader>tp', '<CMD>lua toggle_detach_in_floats()<CR>', { desc = 'Toggle LSP detach in floating windows' })
     end,
   },
 
@@ -1365,12 +1370,12 @@ require('lazy').setup({
           emoji = {
             module = 'blink-emoji',
             name = 'Emoji',
-            score_offset = 15, -- Tune by preference
+            score_offset = 15,        -- Tune by preference
             opts = { insert = true }, -- Insert emoji (default) or complete its name
             should_show_items = function()
               return vim.tbl_contains(
-                -- Enable emoji completion only for git commits and markdown.
-                -- By default, enabled for all file-types.
+              -- Enable emoji completion only for git commits and markdown.
+              -- By default, enabled for all file-types.
                 { 'gitcommit', 'markdown', 'python' },
                 vim.o.filetype
               )
@@ -1577,7 +1582,7 @@ require('lazy').setup({
           -- mapping query_strings to modes.
           selection_modes = {
             ['@parameter.outer'] = 'v', -- charwise
-            ['@function.outer'] = 'V', -- linewise
+            ['@function.outer'] = 'V',  -- linewise
             ['@class.outer'] = '<c-v>', -- blockwise
           },
           -- If you set this to `true` (default is `false`) then any textobject is

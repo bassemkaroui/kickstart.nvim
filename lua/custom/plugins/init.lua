@@ -461,59 +461,172 @@ return {
     },
   },
   {
-    'ThePrimeagen/git-worktree.nvim',
+    'polarmutex/git-worktree.nvim',
+    version = '^2',
     dependencies = {
-      'nvim-telescope/telescope.nvim',
       'nvim-lua/plenary.nvim',
+      'nvim-telescope/telescope.nvim',
     },
     config = function()
-      require('git-worktree').setup()
-      require('telescope').load_extension 'git_worktree'
+      -- 1) Default options via vim.g
+      vim.g.git_worktree = {
+        change_directory_command = 'cd', -- or "tcd"
+        update_on_change = true,
+        update_on_change_command = 'e .', -- open root in new tree
+        clearjumps_on_change = true,
+        autopush = false,
+        confirm_telescope_deletions = true,
+      }
 
+      -- 2) Pull in the hooks API (hyphens here!)
+      local gw = require 'git-worktree'
+      local Hooks = require 'git-worktree.hooks'
+      local cfg = require 'git-worktree.config'
       local Job = require 'plenary.job'
 
-      -- Define the custom function
-      local function create_git_worktree_and_configure()
-        -- Call the create_git_worktree function from the telescope extension
-        require('telescope').extensions.git_worktree.create_git_worktree()
+      local builtin = Hooks.builtins
+      local neo_command = require 'neo-tree.command'
+      local has_yazi, yazi = pcall(require, 'yazi')
 
-        -- Function to check and configure remote.origin.fetch
-        local function check_and_configure_fetch()
-          -- Check the current value of remote.origin.fetch
-          Job:new({
-            command = 'git',
-            args = { 'config', '--get', 'remote.origin.fetch' },
-            on_exit = function(j, return_val)
-              local output = table.concat(j:result(), '\n')
-              if output ~= '+refs/heads/*:refs/remotes/origin/*' then
-                -- Configure remote.origin.fetch if it's not set correctly
-                Job:new({
-                  command = 'git',
-                  args = { 'config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*' },
-                  on_exit = function(j, return_val)
-                    if return_val == 0 then
-                      print 'Successfully configured remote.origin.fetch'
-                    else
-                      print 'Failed to configure remote.origin.fetch'
-                    end
-                  end,
-                }):start()
-              else
-                print 'remote.origin.fetch is already configured correctly'
-              end
-            end,
-          }):start()
+      -- SWITCH: if the buffer exists in the new tree, reload it
+      -- Hooks.register(Hooks.type.SWITCH, Hooks.builtins.update_current_buffer_on_switch)
+      Hooks.register(Hooks.type.SWITCH, function(new_path, prev_path)
+        -- -- 0) Change Neovim's cwd to the new worktree
+        -- vim.cmd('cd ' .. vim.fn.fnameescape(new_path))
+
+        -- 1) Neo-Tree: reveal the new cwd
+        --    We close any existing Neo-Tree and then reopen it in `new_path`.
+        --    If Neo-Tree isn’t installed/loaded, pcall will skip it silently.
+        pcall(function()
+          neo_command.execute { action = 'close' }
+          neo_command.execute {
+            action = 'reveal',
+            dir = new_path,
+            position = 'current', -- or "left", etc., depending on your layout
+          }
+        end)
+
+        -- 2) Yazi: toggle off & on so it rebinds to the new buffer
+        if has_yazi then
+          -- close any existing yazi window (no-op if none)
+          pcall(yazi.close)
+          -- reopen yazi in the new working directory
+          pcall(function()
+            -- second arg is the directory to open in
+            yazi.yazi(nil, new_path)
+          end)
         end
 
-        -- Call the function to check and configure fetch
-        check_and_configure_fetch()
-      end
+        -- 3) Finally, update the current buffer if it exists in new tree
+        builtin.update_current_buffer_on_switch(new_path, prev_path)
+      end)
 
-      -- Set the keymap
-      vim.keymap.set('n', '<Leader>gW', create_git_worktree_and_configure, { desc = 'Create a new worktree and configure fetch' })
-      vim.keymap.set('n', '<Leader>gw', "<CMD>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = 'Show git worktrees' })
+      -- DELETE: run the update_on_change_command (open root)
+      Hooks.register(Hooks.type.DELETE, function()
+        vim.cmd(cfg.update_on_change_command)
+      end)
+
+      -- CREATE: check & set `remote.origin.fetch` in the new worktree
+      Hooks.register(Hooks.type.CREATE, function(path, metadata)
+        Job:new({
+          command = 'git',
+          args = { 'config', '--get', 'remote.origin.fetch' },
+          cwd = path,
+          on_exit = function(job)
+            local cur = table.concat(job:result(), '\n')
+            if cur ~= '+refs/heads/*:refs/remotes/origin/*' then
+              Job:new({
+                command = 'git',
+                args = {
+                  'config',
+                  'remote.origin.fetch',
+                  '+refs/heads/*:refs/remotes/origin/*',
+                },
+                cwd = path,
+                on_exit = function(j2)
+                  if j2.code == 0 then
+                    vim.notify('✔️ remote.origin.fetch configured', vim.log.levels.INFO)
+                  else
+                    vim.notify('❌ failed to configure fetch spec', vim.log.levels.ERROR)
+                  end
+                end,
+              }):start()
+            else
+              vim.notify('remote.origin.fetch already correct', vim.log.levels.DEBUG)
+            end
+          end,
+        }):start()
+      end)
+
+      -- 3) Telescope extension (the extension name stays underscore)
+      require('telescope').load_extension 'git_worktree'
+
+      -- 4) Keymaps
+      vim.keymap.set('n', '<Leader>gW', function()
+        require('telescope').extensions.git_worktree.create_git_worktree()
+      end, { desc = 'Create a new worktree and configure fetch' })
+
+      vim.keymap.set('n', '<Leader>gw', function()
+        require('telescope').extensions.git_worktree.git_worktree()
+      end, { desc = 'List & switch/delete git worktrees' })
     end,
   },
+  -- {
+  --   'ThePrimeagen/git-worktree.nvim',
+  --   dependencies = {
+  --     'nvim-telescope/telescope.nvim',
+  --     'nvim-lua/plenary.nvim',
+  --   },
+  --   config = function()
+  --     require('git-worktree').setup()
+  --     require('telescope').load_extension 'git_worktree'
+  --
+  --     local Job = require 'plenary.job'
+  --
+  --     -- Define the custom function
+  --     local function create_git_worktree_and_configure()
+  --       -- Call the create_git_worktree function from the telescope extension
+  --       require('telescope').extensions.git_worktree.create_git_worktree()
+  --
+  --       -- Function to check and configure remote.origin.fetch
+  --       local function check_and_configure_fetch()
+  --         -- Check the current value of remote.origin.fetch
+  --         Job:new({
+  --           command = 'git',
+  --           args = { 'config', '--get', 'remote.origin.fetch' },
+  --           on_exit = function(j, return_val)
+  --             local output = table.concat(j:result(), '\n')
+  --             if output ~= '+refs/heads/*:refs/remotes/origin/*' then
+  --               -- Configure remote.origin.fetch if it's not set correctly
+  --               Job:new({
+  --                 command = 'git',
+  --                 args = { 'config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*' },
+  --                 on_exit = function(j, return_val)
+  --                   if return_val == 0 then
+  --                     print 'Successfully configured remote.origin.fetch'
+  --                   else
+  --                     print 'Failed to configure remote.origin.fetch'
+  --                   end
+  --                 end,
+  --               }):start()
+  --             else
+  --               print 'remote.origin.fetch is already configured correctly'
+  --             end
+  --           end,
+  --         }):start()
+  --       end
+  --
+  --       -- Call the function to check and configure fetch
+  --       check_and_configure_fetch()
+  --     end
+  --
+  --     -- Set the keymap
+  --     vim.keymap.set('n', '<Leader>gW', create_git_worktree_and_configure,
+  --       { desc = 'Create a new worktree and configure fetch' })
+  --     vim.keymap.set('n', '<Leader>gw', "<CMD>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>",
+  --       { desc = 'Show git worktrees' })
+  --   end,
+  -- },
   {
     'mg979/vim-visual-multi',
     branch = 'master',
@@ -622,7 +735,8 @@ return {
   },
   {
     'amitds1997/remote-nvim.nvim',
-    version = 'v0.3.9', -- Pin to GitHub releases
+    -- version = '*', -- Pin to GitHub releases
+    branch = 'main',
     dependencies = {
       'nvim-lua/plenary.nvim', -- For standard functions
       'MunifTanjim/nui.nvim', -- To build the plugin UI
@@ -650,6 +764,9 @@ return {
       vim.keymap.set('n', '<leader>rc', remote_cleanup, { desc = 'Cleanup a remote Neovim' })
 
       require('remote-nvim').setup {
+        ssh_config = {
+          scp_binary = 'rsync',
+        },
         client_callback = function(port, workspace_config)
           local session_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
           local window_name = ('Remote: %s'):format(workspace_config.host)
@@ -840,14 +957,14 @@ return {
     event = 'VeryLazy',
     ---@type Flash.Config
     opts = {},
-  -- stylua: ignore
-  keys = {
-    { "s", mode = { "n", "x", "o" }, function() require("flash").jump() end, desc = "Flash" },
-    { "S", mode = { "n", "x", "o" }, function() require("flash").treesitter() end, desc = "Flash Treesitter" },
-    { "r", mode = "o", function() require("flash").remote() end, desc = "Remote Flash" },
-    { "R", mode = { "o", "x" }, function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
-    { "<c-s>", mode = { "c" }, function() require("flash").toggle() end, desc = "Toggle Flash Search" },
-  },
+    -- stylua: ignore
+    keys = {
+      { "s",     mode = { "n", "x", "o" }, function() require("flash").jump() end,              desc = "Flash" },
+      { "S",     mode = { "n", "x", "o" }, function() require("flash").treesitter() end,        desc = "Flash Treesitter" },
+      { "r",     mode = "o",               function() require("flash").remote() end,            desc = "Remote Flash" },
+      { "R",     mode = { "o", "x" },      function() require("flash").treesitter_search() end, desc = "Treesitter Search" },
+      { "<c-s>", mode = { "c" },           function() require("flash").toggle() end,            desc = "Toggle Flash Search" },
+    },
   },
   {
     'LunarVim/bigfile.nvim',
@@ -921,5 +1038,85 @@ return {
     lazy = true,
     -- make sure to set opts so that lazy.nvim calls blink.compat's setup
     opts = {},
+  },
+  {
+    'nvimtools/none-ls.nvim',
+    dependencies = {
+      'nvimtools/none-ls-extras.nvim',
+      'jayp0521/mason-null-ls.nvim', -- ensure dependencies are installed
+    },
+    config = function()
+      local null_ls = require 'null-ls'
+      local formatting = null_ls.builtins.formatting -- to setup formatters
+      local diagnostics = null_ls.builtins.diagnostics -- to setup linters
+
+      -- list of formatters & linters for mason to install
+      require('mason-null-ls').setup {
+        ensure_installed = {
+          'checkmake',
+          'prettier', -- ts/js formatter
+          'stylua', -- lua formatter
+          -- 'eslint_d', -- ts/js linter
+          'shfmt',
+          'ruff',
+          'mypy',
+        },
+        -- auto-install configured formatters & linters (with null-ls)
+        automatic_installation = true,
+      }
+
+      local sources = {
+        diagnostics.checkmake,
+        formatting.prettier.with { filetypes = { 'html', 'json', 'yaml', 'markdown' } },
+        formatting.stylua,
+        formatting.shfmt.with { args = { '-i', '4' } },
+        formatting.terraform_fmt,
+        diagnostics.mypy,
+        -- diagnostics.mypy.with {
+        --   -- see issue https://github.com/nvimtools/none-ls.nvim/issues/97
+        --   args = function(params)
+        --     return {
+        --       '--hide-error-codes',
+        --       '--hide-error-context',
+        --       '--no-color-output',
+        --       '--show-absolute-path',
+        --       '--show-column-numbers',
+        --       '--show-error-codes',
+        --       '--no-error-summary',
+        --       '--no-pretty',
+        --       params.bufname,
+        --       params.temp_path,
+        --       params.bufname,
+        --     }
+        --   end,
+        -- },
+        require('none-ls.formatting.ruff').with { extra_args = { '--extend-select', 'I' } },
+        -- require('none-ls.formatting.ruff').with { extra_args = { '--extend-select', 'I', '--ignore', 'F401' } },
+        require 'none-ls.formatting.ruff_format',
+      }
+
+      local augroup = vim.api.nvim_create_augroup('LspFormatting', {})
+      null_ls.setup {
+        -- debug = true, -- Enable debug mode. Inspect logs with :NullLsLog.
+        sources = sources,
+        -- you can reuse a shared lspconfig on_attach callback here
+        on_attach = function(client, bufnr)
+          if client.supports_method 'textDocument/formatting' then
+            vim.api.nvim_clear_autocmds { group = augroup, buffer = bufnr }
+            vim.api.nvim_create_autocmd('BufWritePre', {
+              group = augroup,
+              buffer = bufnr,
+              callback = function()
+                vim.lsp.buf.format { async = false }
+              end,
+            })
+          end
+          vim.keymap.set('n', '<leader>f', function()
+            -- you can pass async = true if you like
+            vim.lsp.buf.format { async = false }
+          end, { buffer = bufnr, desc = 'Format buffer' })
+        end,
+      }
+    end,
   },
 }
