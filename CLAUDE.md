@@ -8,20 +8,20 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|------------|
-| Plugin Manager | Lazy.nvim |
-| Completion | Blink.cmp |
-| LSP | nvim-lspconfig + Mason |
-| Formatting | Conform.nvim + None-LS |
-| Linting | Ruff (Python), nvim-lint |
-| Syntax | Treesitter |
-| Fuzzy Finder | Telescope + FZF |
-| File Explorer | Neo-tree, Yazi |
-| Git | Gitsigns, Neogit, Git-worktree, Fugitive |
-| Debug | DAP (nvim-dap) |
-| Theme | Tokyonight (night) |
-| Terminal | Toggleterm, Vim-tmux-runner |
+| Component      | Technology                               |
+| -------------- | ---------------------------------------- |
+| Plugin Manager | Lazy.nvim                                |
+| Completion     | Blink.cmp                                |
+| LSP            | nvim-lspconfig + Mason                   |
+| Formatting     | Conform.nvim + None-LS                   |
+| Linting        | Ruff (Python), nvim-lint                 |
+| Syntax         | Treesitter                               |
+| Fuzzy Finder   | Telescope + FZF                          |
+| File Explorer  | Neo-tree, Yazi                           |
+| Git            | Gitsigns, Neogit, Git-worktree, Fugitive |
+| Debug          | DAP (nvim-dap)                           |
+| Theme          | Tokyonight (night)                       |
+| Terminal       | Toggleterm, Vim-tmux-runner              |
 
 ## Directory Structure
 
@@ -41,13 +41,13 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 
 ## Key Files
 
-| File | Purpose |
-|------|---------|
-| `init.lua` | Core configuration, LSP setup, keymaps |
-| `lua/custom/plugins/init.lua` | Custom plugin definitions |
-| `lua/kickstart/plugins/debug.lua` | DAP debugging setup |
-| `lua/kickstart/plugins/gitsigns.lua` | Git hunk keymaps |
-| `ruff/pyproject.toml` | Python linting rules |
+| File                                 | Purpose                                |
+| ------------------------------------ | -------------------------------------- |
+| `init.lua`                           | Core configuration, LSP setup, keymaps |
+| `lua/custom/plugins/init.lua`        | Custom plugin definitions              |
+| `lua/kickstart/plugins/debug.lua`    | DAP debugging setup                    |
+| `lua/kickstart/plugins/gitsigns.lua` | Git hunk keymaps                       |
+| `ruff/pyproject.toml`                | Python linting rules                   |
 
 ## LSP Servers Configured
 
@@ -59,15 +59,15 @@ Full configuration: `init.lua:810-1006`
 
 Leader key: `<Space>`
 
-| Prefix | Purpose |
-|--------|---------|
+| Prefix      | Purpose                    |
+| ----------- | -------------------------- |
 | `<leader>s` | Search (files, grep, help) |
-| `<leader>h` | Git hunks |
-| `<leader>t` | Toggle/Terminal |
-| `<leader>b` | Buffer navigation |
-| `<leader>d` | Debug/DAP |
-| `<leader>g` | Git operations |
-| `<leader>x` | Trouble diagnostics |
+| `<leader>h` | Git hunks                  |
+| `<leader>t` | Toggle/Terminal            |
+| `<leader>b` | Buffer navigation          |
+| `<leader>d` | Debug/DAP                  |
+| `<leader>g` | Git operations             |
+| `<leader>x` | Trouble diagnostics        |
 
 See `init.lua:181-266` for full keymap definitions.
 
@@ -93,6 +93,7 @@ See `init.lua:181-266` for full keymap definitions.
 ## Custom Change Markers
 
 User modifications in init.lua marked with:
+
 ```lua
 -- <CUSTOM CHANGE>
 ```
@@ -101,9 +102,9 @@ User modifications in init.lua marked with:
 
 When working on specific areas, consult:
 
-| Topic | File |
-|-------|------|
+| Topic                                | File                                     |
+| ------------------------------------ | ---------------------------------------- |
 | Architectural patterns & conventions | `.claude/docs/architectural_patterns.md` |
-| Plugin organization | See Lazy.nvim spec in `init.lua:268+` |
-| LSP configuration | `init.lua:628-1006` |
-| Python tooling | `ruff/pyproject.toml` |
+| LSP configuration                    | `init.lua:628-1006`                      |
+| Plugin organization                  | See Lazy.nvim spec in `init.lua:268+`    |
+| User additional plugins              | `lua/custom/plugins/init.lua`            |
