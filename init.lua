@@ -186,15 +186,15 @@ vim.opt.termguicolors = true -- needed for nvim-notify plugin --<CUSTOM CHANGE>
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- vim.opt.incsearch = true -- <CUSTOM CHANGE>
 
-vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' })                                      -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' })                       -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' })                       -- <CUSTOM CHANGE>
-vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")                                                                           -- <CUSTOM CHANGE>
-vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")                                                                           -- <CUSTOM CHANGE>
-vim.keymap.set('n', 'J', 'mzJ`z')                                                                                      --<CUSTOM CHANGE>
-vim.keymap.set('x', '<leader>p', '"_dP')                                                                               --<CUSTOM CHANGE>
-vim.keymap.set('v', '<leader>d', '"_d')                                                                                --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]])                              --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' }) -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv") -- <CUSTOM CHANGE>
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv") -- <CUSTOM CHANGE>
+vim.keymap.set('n', 'J', 'mzJ`z') --<CUSTOM CHANGE>
+vim.keymap.set('x', '<leader>p', '"_dP') --<CUSTOM CHANGE>
+vim.keymap.set('v', '<leader>d', '"_d') --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]]) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>x<leader>', '<cmd>!chmod +x %<CR>', { desc = 'Make the file executable', silent = true }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>ta', function()
   vim.opt.relativenumber = not vim.opt.relativenumber:get()
@@ -203,11 +203,11 @@ end, { noremap = true, silent = true, desc = '[T]oggle to [a]bsolute numbers' })
 vim.keymap.set('n', '<leader>tv', function()
   vim.opt_local.cursorcolumn = not vim.opt_local.cursorcolumn:get()
 end, { noremap = true, silent = true, desc = '[T]oggle to [v]ertical cursor column' }) --<CUSTOM CHANGE>
-vim.keymap.set('i', 'jj', '<Esc>')                                                     --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true })             --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true })              --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true })             --<CUSTOM CHANGE>
-vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true })             --<CUSTOM CHANGE>
+vim.keymap.set('i', 'jj', '<Esc>') --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>tS', function()
   if vim.o.laststatus == 3 then
     vim.o.laststatus = 2
@@ -256,12 +256,12 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 -- vim.keymap.set('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'Open current buffer in a new tab' }) --<CUSTOM CHANGE>
 
 -- Buffer management
-vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' })                 --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' })             --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' })                 --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' })               --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' })             --<CUSTOM CHANGE>
-vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' })    --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' }) --<CUSTOM CHANGE>
+vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' }) --<CUSTOM CHANGE>
 vim.keymap.set('n', '<leader>bp', '<cmd>b#<CR>', { desc = 'Go back to the previous Buffer' }) --<CUSTOM CHANGE>
 
 -- [[ Basic Autocommands ]]
@@ -358,7 +358,7 @@ require('lazy').setup({
   -- Then, because we use the `opts` key (recommended), the configuration runs
   -- after the plugin has been loaded as `require(MODULE).setup(opts)`.
 
-  {                     -- Useful plugin to show you pending keybinds.
+  { -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     opts = {
@@ -439,7 +439,7 @@ require('lazy').setup({
       { 'nvim-telescope/telescope-ui-select.nvim' },
 
       -- Useful for getting pretty icons, but requires a Nerd Font.
-      { 'nvim-tree/nvim-web-devicons',            enabled = vim.g.have_nerd_font },
+      { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
       'folke/todo-comments.nvim',
     },
     config = function()
@@ -563,30 +563,30 @@ require('lazy').setup({
         end
 
         pickers
-            .new({}, {
-              prompt_title = 'Section Markers',
-              finder = finders.new_table {
-                results = entries,
-                entry_maker = function(entry)
-                  return {
-                    value = entry,
-                    display = entry.line,
-                    ordinal = entry.line,
-                  }
-                end,
-              },
-              sorter = conf.generic_sorter {},
-              previewer = false, -- disable preview
-              attach_mappings = function(prompt_bufnr, map)
-                actions.select_default:replace(function()
-                  actions.close(prompt_bufnr)
-                  local selection = action_state.get_selected_entry()
-                  vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
-                end)
-                return true
+          .new({}, {
+            prompt_title = 'Section Markers',
+            finder = finders.new_table {
+              results = entries,
+              entry_maker = function(entry)
+                return {
+                  value = entry,
+                  display = entry.line,
+                  ordinal = entry.line,
+                }
               end,
-            })
-            :find()
+            },
+            sorter = conf.generic_sorter {},
+            previewer = false, -- disable preview
+            attach_mappings = function(prompt_bufnr, map)
+              actions.select_default:replace(function()
+                actions.close(prompt_bufnr)
+                local selection = action_state.get_selected_entry()
+                vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
+              end)
+              return true
+            end,
+          })
+          :find()
       end, { desc = 'Jump to # --- section' })
     end,
   },
@@ -616,7 +616,7 @@ require('lazy').setup({
       'WhoIsSethDaniel/mason-tool-installer.nvim',
 
       -- Useful status updates for LSP.
-      { 'j-hui/fidget.nvim',    opts = {} },
+      { 'j-hui/fidget.nvim', opts = {} },
 
       -- Allows extra capabilities provided by blink.cmp
       'saghen/blink.cmp',
@@ -970,8 +970,7 @@ require('lazy').setup({
                   '*docker-compose*.{yml,yaml}',
                   '*compose*.{yml,yaml}',
                 },
-                ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] =
-                '*flow*.{yml,yaml}',
+                ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] = '*flow*.{yml,yaml}',
                 -- ['http://json.schemastore.org/kustomization'] = 'kustomization.{yml,yaml}',
               },
             },
@@ -1260,7 +1259,7 @@ require('lazy').setup({
         -- python = { 'ruff_organize_imports' },
         -- python = { 'ruff_fix' },
         markdown = { 'inject', 'prettier' },
-        -- json = { 'prettier' },
+        json = { 'prettier' },
         -- jsonc = { 'prettier' },
 
         --
@@ -1370,12 +1369,12 @@ require('lazy').setup({
           emoji = {
             module = 'blink-emoji',
             name = 'Emoji',
-            score_offset = 15,        -- Tune by preference
+            score_offset = 15, -- Tune by preference
             opts = { insert = true }, -- Insert emoji (default) or complete its name
             should_show_items = function()
               return vim.tbl_contains(
-              -- Enable emoji completion only for git commits and markdown.
-              -- By default, enabled for all file-types.
+                -- Enable emoji completion only for git commits and markdown.
+                -- By default, enabled for all file-types.
                 { 'gitcommit', 'markdown', 'python' },
                 vim.o.filetype
               )
@@ -1582,7 +1581,7 @@ require('lazy').setup({
           -- mapping query_strings to modes.
           selection_modes = {
             ['@parameter.outer'] = 'v', -- charwise
-            ['@function.outer'] = 'V',  -- linewise
+            ['@function.outer'] = 'V', -- linewise
             ['@class.outer'] = '<c-v>', -- blockwise
           },
           -- If you set this to `true` (default is `false`) then any textobject is

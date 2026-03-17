@@ -1,6 +1,10 @@
 -- You can add your own plugins here or in other files in this directory!
 --  I promise not to create any merge conflicts in this directory :)
 --
+local function shorter_name(filename)
+  return filename:gsub(os.getenv 'HOME', '~'):gsub('/bin/python', '')
+end
+
 -- See the kickstart.nvim README for more information
 return {
   'christoomey/vim-tmux-navigator',
@@ -227,7 +231,7 @@ return {
       harpoon:setup {}
       -- REQUIRED
 
-      vim.keymap.set('n', '<leader>a', function()
+      vim.keymap.set('n', '<leader>ha', function()
         harpoon:list():add()
       end, { desc = '[A]dd buffer to harpoon list' })
       vim.keymap.set('n', '<A-h>', function()
@@ -484,6 +488,25 @@ return {
       local cfg = require 'git-worktree.config'
       local Job = require 'plenary.job'
 
+      -- Fix: strip remote prefix so plugin doesn't create "local/origin/<branch>" names
+      local original_create = gw.create_worktree
+      gw.create_worktree = function(path, branch, upstream)
+        if branch and not upstream then
+          local remote_prefix, stripped = branch:match '^(%w+)/(.+)$'
+          if stripped then
+            local remotes = vim.fn.systemlist 'git remote'
+            for _, remote in ipairs(remotes) do
+              if remote == remote_prefix then
+                upstream = branch
+                branch = stripped
+                break
+              end
+            end
+          end
+        end
+        return original_create(path, branch, upstream)
+      end
+
       local builtin = Hooks.builtins
       local neo_command = require 'neo-tree.command'
       local has_yazi, yazi = pcall(require, 'yazi')
@@ -659,33 +682,28 @@ return {
   {
     'linux-cultist/venv-selector.nvim',
     dependencies = {
-      'neovim/nvim-lspconfig',
       'mfussenegger/nvim-dap',
       'mfussenegger/nvim-dap-python', --optional
       'nvim-telescope/telescope.nvim',
     },
-    lazy = false,
-    branch = 'regexp', -- This is the regexp branch, use this for the new version
-    config = function()
-      require('venv-selector').setup {
-        settings = {
-          search = {
-            anaconda_base = {
-              command = 'fd /python$ $HOME/miniforge3/bin --full-path --color never -E /proc',
-              type = 'anaconda',
-            },
-            anaconda_envs = {
-              command = 'fd /bin/python$ $HOME/miniforge3/envs --full-path --color never -E /proc -E pkgs',
-              type = 'anaconda',
-            },
-          },
+    ft = 'python',
+    opts = {
+      search = {
+        anaconda_base = {
+          command = 'fd /python$ $HOME/miniforge3/bin --full-path --color never -E /proc',
+          type = 'anaconda',
         },
-      }
-    end,
+        anaconda_envs = {
+          command = 'fd /bin/python$ $HOME/miniforge3/envs --full-path --color never -E /proc -E pkgs',
+          type = 'anaconda',
+        },
+      },
+      options = { on_telescope_result_callback = shorter_name, override_notify = false },
+    },
     keys = {
       { '<leader>v', '<cmd>VenvSelect<cr>' },
     },
-  },
+  }, -- },
   -- {
   --   'someone-stole-my-name/yaml-companion.nvim',
   --   dependencies = {
@@ -920,15 +938,15 @@ return {
       { '<leader>tm', '<CMD>MarkdownPreviewToggle<CR>', desc = 'Toggle markdown preview' },
     },
   },
-  {
-    'MeanderingProgrammer/render-markdown.nvim',
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
-    -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
-    ---@module 'render-markdown'
-    ---@type render.md.UserConfig
-    opts = { render_modes = { 'n', 'c' } },
-  },
+  -- {
+  --   'MeanderingProgrammer/render-markdown.nvim',
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+  --   -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+  --   ---@module 'render-markdown'
+  --   ---@type render.md.UserConfig
+  --   opts = { render_modes = { 'n', 'c' } },
+  -- },
   {
     'christoomey/vim-tmux-runner',
     enabled = true and os.getenv 'TMUX' ~= nil,
@@ -1031,6 +1049,52 @@ return {
     end,
   },
   {
+    'coder/claudecode.nvim',
+    dependencies = { 'folke/snacks.nvim' },
+    config = true,
+    keys = {
+      { '<leader>a', nil, desc = 'AI/Claude Code' },
+      { '<leader>ac', '<cmd>ClaudeCode<cr>', desc = 'Toggle Claude' },
+      { '<M-,>', '<cmd>ClaudeCodeFocus<cr>', desc = 'Focus Claude', mode = { 'n', 'x' } },
+      { '<leader>ar', '<cmd>ClaudeCode --resume<cr>', desc = 'Resume Claude' },
+      { '<leader>aC', '<cmd>ClaudeCode --continue<cr>', desc = 'Continue Claude' },
+      -- { '<leader>am', '<cmd>ClaudeCodeSelectModel<cr>', desc = 'Select Claude model' },
+      { '<leader>ab', '<cmd>ClaudeCodeAdd %<cr>', desc = 'Add current buffer' },
+      { '<leader>as', '<cmd>ClaudeCodeSend<cr>', mode = 'v', desc = 'Send to Claude' },
+      {
+        '<leader>as',
+        '<cmd>ClaudeCodeTreeAdd<cr>',
+        desc = 'Add file',
+        ft = { 'NvimTree', 'neo-tree', 'oil', 'minifiles', 'netrw' },
+      },
+      -- Diff management
+      { '<leader>aa', '<cmd>ClaudeCodeDiffAccept<cr>', desc = 'Accept diff' },
+      { '<leader>ad', '<cmd>ClaudeCodeDiffDeny<cr>', desc = 'Deny diff' },
+    },
+    opts = {
+      terminal_cmd = '~/.local/bin/claude',
+      terminal = {
+        provider = 'snacks',
+        snacks_win_opts = {
+          position = 'float',
+          width = 0.9,
+          height = 0.9,
+          border = 'rounded',
+          keys = {
+            claude_hide = {
+              '<M-,>',
+              function(self)
+                self:hide()
+              end,
+              mode = 't',
+              desc = 'Hide Claude Code',
+            },
+          },
+        },
+      },
+    },
+  },
+  {
     'saghen/blink.compat',
     -- use the latest release, via version = '*', if you also use the latest release for blink.cmp
     version = '*',
@@ -1067,7 +1131,7 @@ return {
 
       local sources = {
         diagnostics.checkmake,
-        formatting.prettier.with { filetypes = { 'html', 'json', 'yaml', 'markdown' } },
+        formatting.prettier.with { filetypes = { 'html', 'yaml', 'markdown' } },
         formatting.stylua,
         formatting.shfmt.with { args = { '-i', '4' } },
         formatting.terraform_fmt,
@@ -1117,6 +1181,36 @@ return {
           end, { buffer = bufnr, desc = 'Format buffer' })
         end,
       }
+    end,
+  },
+  {
+    'hedengran/fga.nvim',
+    build = function()
+      -- Auto-install the FGA LSP server if not present
+      local lsp_dir = vim.fn.expand '~/.local/share/openfga-vscode-ext'
+      local lsp_server = lsp_dir .. '/server/out/server.node.js'
+      if vim.fn.filereadable(lsp_server) == 0 then
+        vim.notify('fga.nvim: Installing FGA LSP server...', vim.log.levels.INFO)
+        local cmds = string.format(
+          'git clone https://github.com/openfga/vscode-ext %s && cd %s && npm install && npm run compile',
+          vim.fn.shellescape(lsp_dir),
+          vim.fn.shellescape(lsp_dir)
+        )
+        local result = vim.fn.system(cmds)
+        if vim.v.shell_error == 0 then
+          vim.notify('fga.nvim: FGA LSP server installed successfully', vim.log.levels.INFO)
+        else
+          vim.notify('fga.nvim: Failed to install FGA LSP server:\n' .. result, vim.log.levels.ERROR)
+        end
+      end
+    end,
+    config = function()
+      local lsp_server = vim.fn.expand '~/.local/share/openfga-vscode-ext/server/out/server.node.js'
+      local opts = { install_treesitter_grammar = true }
+      if vim.fn.filereadable(lsp_server) == 1 then
+        opts.lsp_server = lsp_server
+      end
+      require('fga').setup(opts)
     end,
   },
 }
