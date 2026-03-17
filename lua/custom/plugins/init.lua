@@ -1,11 +1,14 @@
 -- You can add your own plugins here or in other files in this directory!
 --  I promise not to create any merge conflicts in this directory :)
 --
+-- See the kickstart.nvim README for more information
+
 local function shorter_name(filename)
   return filename:gsub(os.getenv 'HOME', '~'):gsub('/bin/python', '')
 end
 
--- See the kickstart.nvim README for more information
+---@module 'lazy'
+---@type LazySpec
 return {
   'christoomey/vim-tmux-navigator',
   {
