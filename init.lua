@@ -1310,18 +1310,73 @@ require('lazy').setup({
         end,
       })
 
-      -- <CUSTOM CHANGE> incremental selection via nvim-treesitter module
-      require('nvim-treesitter.configs').setup {
-        incremental_selection = {
-          enable = true,
-          keymaps = {
-            init_selection = '<A-i>',
-            node_incremental = '<A-i>',
-            scope_incremental = '<A-s>',
-            node_decremental = '<A-d>',
-          },
-        },
-      }
+      -- <CUSTOM CHANGE> incremental selection using native vim.treesitter API
+      -- (replaces removed nvim-treesitter.configs incremental_selection module)
+      local selection_stack = {}
+
+      local function reset_stack(buf) selection_stack[buf] = nil end
+
+      vim.api.nvim_create_autocmd('ModeChanged', {
+        pattern = '*:n',
+        callback = function() reset_stack(vim.api.nvim_get_current_buf()) end,
+      })
+
+      -- Init / expand selection: <A-i>
+      vim.keymap.set('n', '<A-i>', function()
+        local buf = vim.api.nvim_get_current_buf()
+        local node = vim.treesitter.get_node()
+        if not node then return end
+        selection_stack[buf] = { node }
+        local sr, sc, er, ec = node:range()
+        vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+        vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+        vim.cmd 'normal! gv'
+      end, { desc = 'Init treesitter selection' })
+
+      vim.keymap.set('v', '<A-i>', function()
+        local buf = vim.api.nvim_get_current_buf()
+        local stack = selection_stack[buf]
+        if not stack or #stack == 0 then return end
+        local current = stack[#stack]
+        local parent = current:parent()
+        if not parent then return end
+        table.insert(stack, parent)
+        local sr, sc, er, ec = parent:range()
+        vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+        vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+        vim.cmd 'normal! gv'
+      end, { desc = 'Expand treesitter selection' })
+
+      -- Shrink selection: <A-d>
+      vim.keymap.set('v', '<A-d>', function()
+        local buf = vim.api.nvim_get_current_buf()
+        local stack = selection_stack[buf]
+        if not stack or #stack <= 1 then return end
+        table.remove(stack)
+        local node = stack[#stack]
+        local sr, sc, er, ec = node:range()
+        vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+        vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+        vim.cmd 'normal! gv'
+      end, { desc = 'Shrink treesitter selection' })
+
+      -- Expand to scope (named parent): <A-s>
+      vim.keymap.set('v', '<A-s>', function()
+        local buf = vim.api.nvim_get_current_buf()
+        local stack = selection_stack[buf]
+        if not stack or #stack == 0 then return end
+        local current = stack[#stack]
+        local parent = current:parent()
+        while parent and not parent:named() do
+          parent = parent:parent()
+        end
+        if not parent then return end
+        table.insert(stack, parent)
+        local sr, sc, er, ec = parent:range()
+        vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+        vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+        vim.cmd 'normal! gv'
+      end, { desc = 'Expand treesitter selection to scope' })
     end,
   },
 
