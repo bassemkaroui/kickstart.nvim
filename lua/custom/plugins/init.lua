@@ -3,9 +3,7 @@
 --
 -- See the kickstart.nvim README for more information
 
-local function shorter_name(filename)
-  return filename:gsub(os.getenv 'HOME', '~'):gsub('/bin/python', '')
-end
+local function shorter_name(filename) return filename:gsub(os.getenv 'HOME', '~'):gsub('/bin/python', '') end
 
 ---@module 'lazy'
 ---@type LazySpec
@@ -121,9 +119,7 @@ return {
       vim.keymap.set('n', '<leader>nn', '<cmd>Noice dismiss<CR>', { desc = 'Clear notifications' })
 
       -- Function to clear the recording notification
-      local function clear_recording_notification()
-        vim.cmd 'Noice dismiss'
-      end
+      local function clear_recording_notification() vim.cmd 'Noice dismiss' end
 
       -- Autocommand to clear notification when recording stops
       vim.api.nvim_create_autocmd('RecordingLeave', {
@@ -234,12 +230,8 @@ return {
       harpoon:setup {}
       -- REQUIRED
 
-      vim.keymap.set('n', '<leader>ha', function()
-        harpoon:list():add()
-      end, { desc = '[A]dd buffer to harpoon list' })
-      vim.keymap.set('n', '<A-h>', function()
-        harpoon.ui:toggle_quick_menu(harpoon:list())
-      end)
+      vim.keymap.set('n', '<leader>ha', function() harpoon:list():add() end, { desc = '[A]dd buffer to harpoon list' })
+      vim.keymap.set('n', '<A-h>', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end)
 
       -- vim.keymap.set('n', '<C-h>', function()
       --   harpoon:list():select(1)
@@ -255,12 +247,8 @@ return {
       -- end)
 
       -- Toggle previous & next buffers stored within Harpoon list
-      vim.keymap.set('n', '<A-p>', function()
-        harpoon:list():prev()
-      end)
-      vim.keymap.set('n', '<A-n>', function()
-        harpoon:list():next()
-      end)
+      vim.keymap.set('n', '<A-p>', function() harpoon:list():prev() end)
+      vim.keymap.set('n', '<A-n>', function() harpoon:list():next() end)
 
       -- basic telescope configuration
       local conf = require('telescope.config').values
@@ -282,9 +270,7 @@ return {
           :find()
       end
 
-      vim.keymap.set('n', '<leader>sp', function()
-        toggle_telescope(harpoon:list())
-      end, { desc = '[S]earch in har[p]oon' })
+      vim.keymap.set('n', '<leader>sp', function() toggle_telescope(harpoon:list()) end, { desc = '[S]earch in har[p]oon' })
     end,
   },
   {
@@ -402,15 +388,9 @@ return {
       local dap = require 'dap'
       local dapui = require 'dapui'
       dapui.setup()
-      dap.listeners.after.event_initialized['dapui_config'] = function()
-        dapui.open()
-      end
-      dap.listeners.before.event_terminated['dapui_config'] = function()
-        dapui.close()
-      end
-      dap.listeners.before.event_exited['dapui_config'] = function()
-        dapui.close()
-      end
+      dap.listeners.after.event_initialized['dapui_config'] = function() dapui.open() end
+      dap.listeners.before.event_terminated['dapui_config'] = function() dapui.close() end
+      dap.listeners.before.event_exited['dapui_config'] = function() dapui.close() end
       vim.keymap.set('n', '<leader>dt', "<cmd>lua require('dapui').toggle()<CR>", { desc = 'DapUI Toggle' })
       vim.keymap.set('n', '<leader>dr', "<cmd>lua require('dapui').open({reset = true})<CR>", { desc = 'Reset DapUI' })
       vim.keymap.set(
@@ -440,9 +420,7 @@ return {
   },
   {
     'theHamsta/nvim-dap-virtual-text',
-    config = function()
-      require('nvim-dap-virtual-text').setup()
-    end,
+    config = function() require('nvim-dap-virtual-text').setup() end,
   },
   {
     'mfussenegger/nvim-dap-python',
@@ -548,9 +526,7 @@ return {
       end)
 
       -- DELETE: run the update_on_change_command (open root)
-      Hooks.register(Hooks.type.DELETE, function()
-        vim.cmd(cfg.update_on_change_command)
-      end)
+      Hooks.register(Hooks.type.DELETE, function() vim.cmd(cfg.update_on_change_command) end)
 
       -- CREATE: check & set `remote.origin.fetch` in the new worktree
       Hooks.register(Hooks.type.CREATE, function(path, metadata)
@@ -588,13 +564,19 @@ return {
       require('telescope').load_extension 'git_worktree'
 
       -- 4) Keymaps
-      vim.keymap.set('n', '<Leader>gW', function()
-        require('telescope').extensions.git_worktree.create_git_worktree()
-      end, { desc = 'Create a new worktree and configure fetch' })
+      vim.keymap.set(
+        'n',
+        '<Leader>gW',
+        function() require('telescope').extensions.git_worktree.create_git_worktree() end,
+        { desc = 'Create a new worktree and configure fetch' }
+      )
 
-      vim.keymap.set('n', '<Leader>gw', function()
-        require('telescope').extensions.git_worktree.git_worktree()
-      end, { desc = 'List & switch/delete git worktrees' })
+      vim.keymap.set(
+        'n',
+        '<Leader>gw',
+        function() require('telescope').extensions.git_worktree.git_worktree() end,
+        { desc = 'List & switch/delete git worktrees' }
+      )
     end,
   },
   -- {
@@ -675,9 +657,7 @@ return {
     keys = {
       {
         '<leader>dg',
-        function()
-          require('neogen').generate()
-        end,
+        function() require('neogen').generate() end,
         desc = 'Generate Docstring',
       },
     },
@@ -741,15 +721,11 @@ return {
         vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
         vim.keymap.set('n', 'zK', function()
           local winid = require('ufo').peekFoldedLinesUnderCursor()
-          if not winid then
-            vim.lsp.buf.hover()
-          end
+          if not winid then vim.lsp.buf.hover() end
         end, { desc = 'Peek fold' })
 
         require('ufo').setup {
-          provider_selector = function(bufnr, filetype, buftype)
-            return { 'lsp', 'indent' }
-          end,
+          provider_selector = function(bufnr, filetype, buftype) return { 'lsp', 'indent' } end,
         }
       end,
     },
@@ -933,9 +909,7 @@ return {
     'iamcco/markdown-preview.nvim',
     cmd = { 'MarkdownPreviewToggle', 'MarkdownPreview', 'MarkdownPreviewStop' },
     build = 'cd app && npm install',
-    init = function()
-      vim.g.mkdp_filetypes = { 'markdown' }
-    end,
+    init = function() vim.g.mkdp_filetypes = { 'markdown' } end,
     ft = { 'markdown' },
     keys = {
       { '<leader>tm', '<CMD>MarkdownPreviewToggle<CR>', desc = 'Toggle markdown preview' },
@@ -993,9 +967,7 @@ return {
     opts = {
       filesize = 2, -- size of the file in MiB, the plugin round file sizes to the closest MiB
     },
-    config = function(_, opts)
-      require('bigfile').setup(opts)
-    end,
+    config = function(_, opts) require('bigfile').setup(opts) end,
   },
   -- {
   --   'kelly-lin/ranger.nvim',
@@ -1086,9 +1058,7 @@ return {
           keys = {
             claude_hide = {
               '<M-,>',
-              function(self)
-                self:hide()
-              end,
+              function(self) self:hide() end,
               mode = 't',
               desc = 'Hide Claude Code',
             },
@@ -1173,9 +1143,7 @@ return {
             vim.api.nvim_create_autocmd('BufWritePre', {
               group = augroup,
               buffer = bufnr,
-              callback = function()
-                vim.lsp.buf.format { async = false }
-              end,
+              callback = function() vim.lsp.buf.format { async = false } end,
             })
           end
           vim.keymap.set('n', '<leader>f', function()
@@ -1210,10 +1178,36 @@ return {
     config = function()
       local lsp_server = vim.fn.expand '~/.local/share/openfga-vscode-ext/server/out/server.node.js'
       local opts = { install_treesitter_grammar = false }
-      if vim.fn.filereadable(lsp_server) == 1 then
-        opts.lsp_server = lsp_server
-      end
+      if vim.fn.filereadable(lsp_server) == 1 then opts.lsp_server = lsp_server end
       require('fga').setup(opts)
+    end,
+  },
+
+  -- <CUSTOM CHANGE> otter.nvim — LSP features (completion, diagnostics) for embedded languages in mise TOML
+  -- {
+  --   'jmbuhr/otter.nvim',
+  --   ft = { 'toml' },
+  --   dependencies = { 'nvim-treesitter/nvim-treesitter' },
+  --   config = function()
+  --     vim.api.nvim_create_autocmd('FileType', {
+  --       pattern = 'toml',
+  --       group = vim.api.nvim_create_augroup('EmbedToml', {}),
+  --       callback = function() require('otter').activate() end,
+  --     })
+  --   end,
+  -- },
+  --
+  {
+    'jmbuhr/otter.nvim',
+    dependencies = {
+      'nvim-treesitter/nvim-treesitter',
+    },
+    config = function()
+      vim.api.nvim_create_autocmd({ 'FileType' }, {
+        pattern = { 'toml' },
+        group = vim.api.nvim_create_augroup('EmbedToml', {}),
+        callback = function() require('otter').activate() end,
+      })
     end,
   },
 }

@@ -84,6 +84,9 @@ I hope you enjoy your Neovim journey,
 P.S. You can delete this when you're done too. It's your config now! :)
 --]]
 
+-- <CUSTOM CHANGE> Prepend mise shims to PATH so LSP/formatters/linters find mise-managed tools
+vim.env.PATH = vim.env.HOME .. '/.local/share/mise/shims:' .. vim.env.PATH
+
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -1268,6 +1271,14 @@ require('lazy').setup({
     build = ':TSUpdate',
     branch = 'main',
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter-intro`
+    init = function()
+      -- <CUSTOM CHANGE> Register custom predicate for mise TOML injection queries
+      vim.treesitter.query.add_predicate('is-mise?', function(_, _, bufnr, _)
+        local filepath = vim.api.nvim_buf_get_name(tonumber(bufnr) or 0)
+        local filename = vim.fn.fnamemodify(filepath, ':t')
+        return string.match(filename, '.*mise.*%.toml$') ~= nil
+      end, { force = true, all = false })
+    end,
     config = function()
       local parsers = {
         'bash',
@@ -1286,6 +1297,8 @@ require('lazy').setup({
         'sql',
         'json',
         'yaml',
+        'toml',
+        'kdl',
       }
       require('nvim-treesitter').install(parsers)
       vim.api.nvim_create_autocmd('FileType', {
