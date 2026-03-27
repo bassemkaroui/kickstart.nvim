@@ -185,8 +185,6 @@ vim.o.confirm = true
 
 vim.opt.termguicolors = true -- needed for nvim-notify plugin --<CUSTOM CHANGE>
 
-vim.g.ts_install_concurrency = 4 -- limit parallel treesitter parser compilations --<CUSTOM CHANGE>
-
 -- -- Set foldmethod and foldexpr for Treesitter
 -- vim.wo.foldmethod = 'expr'
 -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
@@ -648,7 +646,9 @@ require('lazy').setup({
         ---@module 'mason.settings'
         ---@type MasonSettings
         ---@diagnostic disable-next-line: missing-fields
-        opts = {},
+        opts = {
+          max_concurrent_installers = 2, --<CUSTOM CHANGE>
+        },
       },
       -- Maps LSP server names between nvim-lspconfig and Mason package names.
       'mason-org/mason-lspconfig.nvim',
@@ -1315,7 +1315,7 @@ require('lazy').setup({
         'toml',
         'kdl',
       }
-      require('nvim-treesitter').install(parsers)
+      require('nvim-treesitter').install(parsers, { max_jobs = 2 }) -- limit parallel parser compilations to avoid freezing remote machines --<CUSTOM CHANGE>
       vim.api.nvim_create_autocmd('FileType', {
         callback = function(args)
           local buf, filetype = args.buf, args.match
