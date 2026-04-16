@@ -318,6 +318,55 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   callback = function() vim.hl.on_yank() end,
 })
 
+-- <CUSTOM CHANGE> Python: <leader>mi appends `# type: ignore[<code>]` for mypy diagnostics on the current line
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = 'python',
+  group = vim.api.nvim_create_augroup('custom-python-mypy-ignore', { clear = true }),
+  callback = function(args)
+    vim.keymap.set('n', '<leader>mi', function()
+      local row = vim.api.nvim_win_get_cursor(0)[1]
+      local codes = {}
+      for _, d in ipairs(vim.diagnostic.get(args.buf, { lnum = row - 1 })) do
+        if d.source == 'mypy' and d.code then table.insert(codes, d.code) end
+      end
+      if #codes == 0 then
+        vim.notify('no mypy diagnostic on this line', vim.log.levels.WARN)
+        return
+      end
+      local line = vim.api.nvim_buf_get_lines(args.buf, row - 1, row, false)[1]
+      local ignore = '# type: ignore[' .. table.concat(codes, ', ') .. ']'
+
+      -- Treesitter tells us the column of the first real `#` (ignoring `#` inside string literals).
+      local ok, parser = pcall(vim.treesitter.get_parser, args.buf, 'python')
+      if not ok or not parser then
+        vim.notify('Treesitter python parser unavailable', vim.log.levels.ERROR)
+        return
+      end
+      local tree = parser:parse()[1]
+      local query = vim.treesitter.query.parse('python', '(comment) @c')
+      local first_col
+      for _, node in query:iter_captures(tree:root(), args.buf, row - 1, row) do
+        local sr, sc = node:range()
+        if sr == row - 1 and (not first_col or sc < first_col) then first_col = sc end
+      end
+
+      local code_part, trailing
+      if not first_col then
+        code_part, trailing = line:gsub('%s+$', ''), ''
+      else
+        code_part = line:sub(1, first_col):gsub('%s+$', '')
+        -- Python sees `# type: ignore[X]  # noqa: Y` as one comment token; strip the ignore chunk out of the blob
+        trailing = line:sub(first_col + 1):gsub('#%s*type:%s*ignore%[.-%]', '')
+        trailing = trailing:gsub('^%s+', ''):gsub('%s+$', ''):gsub('%s%s+', '  ')
+      end
+
+      local new_line = code_part .. '  ' .. ignore
+      if trailing ~= '' then new_line = new_line .. '  ' .. trailing end
+      vim.api.nvim_buf_set_lines(args.buf, row - 1, row, false, { new_line })
+    end, { buffer = args.buf, desc = 'Python: mypy type:ignore this line' })
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -786,14 +835,7 @@ require('lazy').setup({
           filetypes = { 'json', 'jsonc', 'json5' },
         },
         -- taplo = {},
-        -- ruff = {
-        --   init_options = {
-        --     configuration = '~/.config/nvim/ruff/pyproject.toml',
-        --     settings = {
-        --       configurationPreference = 'filesystemFirst',
-        --     },
-        --   },
-        -- },
+        ruff = {},
         bashls = {},
         -- pylsp = {
         --   settings = {
@@ -803,7 +845,7 @@ require('lazy').setup({
         --         ruff = {
         --           enabled = true,
         --           formatEnabled = true,
-        --           config = '~/.config/nvim/ruff/pyproject.toml',
+        --           config = '~/.config/ruff/ruff.toml',
         --           format = { 'I', 'F541' },
         --           unsafeFixes = true,
         --         },
@@ -981,7 +1023,14 @@ require('lazy').setup({
       -- You can press `g?` for help in this menu.
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
-        -- You can add other tools here that you want Mason to install
+        -- Formatters (conform.nvim)
+        'stylua',
+        'prettier',
+        'shfmt',
+        -- Linters (nvim-lint)
+        'markdownlint',
+        'checkmake',
+        'mypy',
       })
 
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
@@ -1037,17 +1086,19 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { 'isort', 'black' },
-        -- python = { 'ruff_organize_imports' },
-        -- python = { 'ruff_fix' },
+        python = { 'ruff_fix', 'ruff_format' },
+        -- python = { 'ruff_organize_imports', 'ruff_format' }
         markdown = { 'inject', 'prettier' },
         json = { 'prettier' },
-        -- jsonc = { 'prettier' },
-
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        html = { 'prettier' },
+        yaml = { 'prettier' },
+        sh = { 'shfmt' },
+        bash = { 'shfmt' },
+        zsh = { 'shfmt' },
+        terraform = { 'terraform_fmt' },
+      },
+      formatters = {
+        shfmt = { prepend_args = { '-i', '4' } },
       },
     },
   },
@@ -1425,7 +1476,7 @@ require('lazy').setup({
   --
   -- require 'kickstart.plugins.debug',
   require 'kickstart.plugins.indent_line',
-  -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.lint',
   require 'kickstart.plugins.autopairs',
   require 'kickstart.plugins.neo-tree',
   require 'kickstart.plugins.gitsigns', -- adds gitsigns recommend keymaps

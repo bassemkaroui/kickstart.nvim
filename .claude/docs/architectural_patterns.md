@@ -22,7 +22,8 @@ return {
 
 **Examples:**
 
-- `init.lua:1043-1121` - none-ls configuration with formatters/linters
+- `init.lua:1008-1056` - conform.nvim with `formatters_by_ft` and `format_on_save`
+- `lua/kickstart/plugins/lint.lua` - nvim-lint with `linters_by_ft` and `try_lint` autocmd
 - `lua/custom/plugins/init.lua:1-50` - toggleterm with opts pattern
 - `lua/custom/plugins/init.lua:165-220` - harpoon v2 with complex config
 
@@ -54,19 +55,27 @@ return {
 
 ## Formatting Pipeline
 
-Three-layer approach:
+Two-layer approach:
 
-1. **Conform.nvim** (primary): `init.lua:1230-1270`
+1. **Conform.nvim** (primary): `init.lua:1008-1056`
 
-    - Per-filetype formatter mapping
-    - Format on save via BufWritePre
+    - Per-filetype mapping via `formatters_by_ft` (lua, python, markdown, json, html, yaml, sh/bash/zsh, terraform)
+    - Format on save via `format_on_save` (disabled for C/C++)
+    - Formatter option overrides via `formatters` (e.g. `shfmt.prepend_args = { '-i', '4' }`)
 
-2. **None-LS** (supplementary): `init.lua:1043-1121`
+2. **LSP fallback**: `require('conform').format { lsp_format = 'fallback' }` — when no conform formatter is registered for a filetype, delegates to `vim.lsp.buf.format` (e.g. ruff LSP handles Python formatting if the conform entry is absent)
 
-    - Additional formatters/linters
-    - Schema-aware YAML formatting
+## Linting Pipeline
 
-3. **LSP fallback**: When conform has no formatter configured
+Two sources of diagnostics:
+
+1. **LSP diagnostics**: each configured server (`init.lua` servers table) contributes via `vim.lsp.buf.diagnostic`. Notably, `ruff` LSP provides live Python lint diagnostics + code actions; it reads rules from the nearest project `pyproject.toml` (or `ruff.toml` / `.ruff.toml`) via upward discovery, falling back to the user-level `~/.config/ruff/ruff.toml` (stowed from `~/.dotfiles/ruff/tag-default/.config/ruff/ruff.toml`).
+
+2. **nvim-lint** (non-LSP tools): `lua/kickstart/plugins/lint.lua`
+
+    - `linters_by_ft` maps filetype → CLI linter (`markdown → markdownlint`, `make → checkmake`, `python → mypy`)
+    - `try_lint()` autocmd fires on `BufEnter`, `BufWritePost`, `InsertLeave` (only when `vim.bo.modifiable`)
+    - Tools installed via `mason-tool-installer` entries in `init.lua` (alongside the LSP servers)
 
 ## Custom Change Markers
 

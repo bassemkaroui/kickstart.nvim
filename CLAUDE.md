@@ -13,8 +13,8 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 | Plugin Manager | Lazy.nvim                                |
 | Completion     | Blink.cmp                                |
 | LSP            | nvim-lspconfig + Mason                   |
-| Formatting     | Conform.nvim + None-LS                   |
-| Linting        | Ruff (Python), nvim-lint                 |
+| Formatting     | Conform.nvim                             |
+| Linting        | Ruff LSP (Python), nvim-lint             |
 | Syntax         | Treesitter                               |
 | Fuzzy Finder   | Telescope + FZF                          |
 | File Explorer  | Neo-tree, Yazi                           |
@@ -34,7 +34,6 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 │   └── kickstart/              # Kickstart modules
 │       ├── plugins/            # Optional: neo-tree, debug, gitsigns, lint, autopairs
 │       └── health.lua
-├── ruff/pyproject.toml         # Python linting rules (Ruff config)
 ├── .stylua.toml                # Lua formatter (160 char width)
 └── .editorconfig               # Editor settings
 ```
@@ -47,7 +46,7 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 | `lua/custom/plugins/init.lua`        | Custom plugin definitions              |
 | `lua/kickstart/plugins/debug.lua`    | DAP debugging setup                    |
 | `lua/kickstart/plugins/gitsigns.lua` | Git hunk keymaps                       |
-| `ruff/pyproject.toml`                | Python linting rules                   |
+| `~/.config/ruff/ruff.toml`           | Ruff user-level config (stowed from `~/.dotfiles/ruff/`) |
 
 ## LSP Servers Configured
 
