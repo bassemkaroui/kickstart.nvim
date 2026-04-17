@@ -735,49 +735,44 @@ return {
     -- version = '*', -- Pin to GitHub releases
     branch = 'main',
     dependencies = {
-      'nvim-lua/plenary.nvim', -- For standard functions
-      'MunifTanjim/nui.nvim', -- To build the plugin UI
-      'nvim-telescope/telescope.nvim', -- For picking b/w different remote methods
+      'nvim-lua/plenary.nvim',
+      'MunifTanjim/nui.nvim',
+      'nvim-telescope/telescope.nvim',
     },
-    config = function()
-      vim.keymap.set('n', '<leader>rs', '<CMD>RemoteStart<CR>', { desc = 'Start a remote Neovim' })
-      vim.keymap.set('n', '<leader>rS', '<CMD>RemoteStop<CR>', { desc = 'Stop a remote Neovim' })
-      vim.keymap.set('n', '<leader>ri', '<CMD>RemoteInfo<CR>', { desc = 'Remote Neovim Info' })
-      vim.keymap.set('n', '<leader>rl', '<CMD>RemoteLog<CR>', { desc = 'Remote Neovim Logs' })
-
-      -- Function to prompt for an argument and execute :RemoteCleanup with that argument
-      local function remote_cleanup()
-        -- Prompt the user for input
-        local input = vim.fn.input 'Enter the remote name: '
-
-        -- Check if input is not empty
-        if input and input ~= '' then
-          -- Execute the :RemoteCleanup command with the provided argument
-          vim.cmd('RemoteCleanup ' .. input)
-        else
-          print 'Remote name is required.'
-        end
-      end
-      vim.keymap.set('n', '<leader>rc', remote_cleanup, { desc = 'Cleanup a remote Neovim' })
-
-      require('remote-nvim').setup {
-        ssh_config = {
-          scp_binary = 'rsync',
-        },
-        client_callback = function(port, workspace_config)
-          local session_name = vim.fn.fnamemodify(vim.fn.getcwd(), ':t')
-          local window_name = ('Remote: %s'):format(workspace_config.host)
-          local cmd = ("tmux new-window -n '%s' 'nvim --server localhost:%s --remote-ui'"):format(window_name, port)
-          vim.fn.jobstart(cmd, {
-            detach = true,
-            on_exit = function(job_id, exit_code, event_type)
-              -- This function will be called when the job exits
-              print('Client', job_id, 'exited with code', exit_code, 'Event type:', event_type)
-            end,
-          })
+    cmd = { 'RemoteStart', 'RemoteStop', 'RemoteInfo', 'RemoteLog', 'RemoteCleanup' },
+    keys = {
+      { '<leader>rs', '<CMD>RemoteStart<CR>', desc = 'Start a remote Neovim' },
+      { '<leader>rS', '<CMD>RemoteStop<CR>', desc = 'Stop a remote Neovim' },
+      { '<leader>ri', '<CMD>RemoteInfo<CR>', desc = 'Remote Neovim Info' },
+      { '<leader>rl', '<CMD>RemoteLog<CR>', desc = 'Remote Neovim Logs' },
+      {
+        '<leader>rc',
+        function()
+          local input = vim.fn.input 'Enter the remote name: '
+          if input and input ~= '' then
+            vim.cmd('RemoteCleanup ' .. input)
+          else
+            print 'Remote name is required.'
+          end
         end,
-      }
-    end,
+        desc = 'Cleanup a remote Neovim',
+      },
+    },
+    opts = {
+      ssh_config = {
+        scp_binary = 'rsync',
+      },
+      client_callback = function(port, workspace_config)
+        local window_name = ('Remote: %s'):format(workspace_config.host)
+        local cmd = ("tmux new-window -n '%s' 'nvim --server localhost:%s --remote-ui'"):format(window_name, port)
+        vim.fn.jobstart(cmd, {
+          detach = true,
+          on_exit = function(job_id, exit_code, event_type)
+            print('Client', job_id, 'exited with code', exit_code, 'Event type:', event_type)
+          end,
+        })
+      end,
+    },
   },
   {
     'Vigemus/iron.nvim',
@@ -924,27 +919,67 @@ return {
   --   ---@type render.md.UserConfig
   --   opts = { render_modes = { 'n', 'c' } },
   -- },
+  -- {
+  --   'christoomey/vim-tmux-runner',
+  --   enabled = true and os.getenv 'TMUX' ~= nil,
+  --   event = 'VeryLazy',
+  --   keys = {
+  --     { '<leader>tC', '<cmd>VtrClearRunner<cr>', desc = 'Clear Tmux Runner' },
+  --     { '<leader>tF', '<cmd>VtrFocusRunner<cr>', desc = 'Focus Tmux Runner' },
+  --     { '<leader>tR', '<cmd>VtrReorientRunner<cr>', desc = 'Reorient Tmux Runner' },
+  --     -- { '<leader>ta', '<cmd>VtrReattachRunner<cr>', desc = 'Reattach Tmux Runner' },
+  --     { '<leader>tc', '<cmd>VtrFlushCommand<cr>', desc = 'Flush Tmux Runner Command' },
+  --     { '<leader>tf', '<cmd>VtrSendFile<cr>', desc = 'Send File to Tmux Runner' },
+  --     { '<leader>tk', '<cmd>VtrKillRunner<cr>', desc = 'Kill Tmux Runner' },
+  --     { '<leader>tl', '<cmd>VtrSendLinesToRunner<cr>', desc = 'Send Lines to Tmux Runner' },
+  --     { '<leader>to', "<cmd>VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>", desc = 'Open Tmux Runner' },
+  --     { '<leader>tr', '<cmd>VtrResizeRunner<cr>', desc = 'Resize Tmux Runner' },
+  --     { '<leader>ts', '<cmd>VtrSendCommandToRunner<cr>', desc = 'Send Command to Tmux Runner' },
+  --   },
+  --   config = function()
+  --     vim.g.VtrStripLeadingWhitespace = 0
+  --     vim.g.VtrClearEmptyLines = 0
+  --     vim.g.VtrAppendNewline = 1
+  --   end,
+  -- },
+  -- <CUSTOM CHANGE> neotest: in-editor test runner with inline results, summary panel, DAP integration
   {
-    'christoomey/vim-tmux-runner',
-    enabled = true and os.getenv 'TMUX' ~= nil,
-    event = 'VeryLazy',
+    'nvim-neotest/neotest',
+    dependencies = {
+      'nvim-neotest/nvim-nio',
+      'nvim-lua/plenary.nvim',
+      'nvim-treesitter/nvim-treesitter',
+      'antoinemadec/FixCursorHold.nvim',
+      'nvim-neotest/neotest-python',
+    },
+    ft = 'python',
+    -- stylua: ignore
     keys = {
-      { '<leader>tC', '<cmd>VtrClearRunner<cr>', desc = 'Clear Tmux Runner' },
-      { '<leader>tF', '<cmd>VtrFocusRunner<cr>', desc = 'Focus Tmux Runner' },
-      { '<leader>tR', '<cmd>VtrReorientRunner<cr>', desc = 'Reorient Tmux Runner' },
-      -- { '<leader>ta', '<cmd>VtrReattachRunner<cr>', desc = 'Reattach Tmux Runner' },
-      { '<leader>tc', '<cmd>VtrFlushCommand<cr>', desc = 'Flush Tmux Runner Command' },
-      { '<leader>tf', '<cmd>VtrSendFile<cr>', desc = 'Send File to Tmux Runner' },
-      { '<leader>tk', '<cmd>VtrKillRunner<cr>', desc = 'Kill Tmux Runner' },
-      { '<leader>tl', '<cmd>VtrSendLinesToRunner<cr>', desc = 'Send Lines to Tmux Runner' },
-      { '<leader>to', "<cmd>VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>", desc = 'Open Tmux Runner' },
-      { '<leader>tr', '<cmd>VtrResizeRunner<cr>', desc = 'Resize Tmux Runner' },
-      { '<leader>ts', '<cmd>VtrSendCommandToRunner<cr>', desc = 'Send Command to Tmux Runner' },
+      { '<leader>tr', function() require('neotest').run.run() end,                                  desc = 'Run nearest test' },
+      { '<leader>tf', function() require('neotest').run.run(vim.fn.expand '%') end,                 desc = 'Run test file' },
+      { '<leader>ts', function() require('neotest').summary.toggle() end,                           desc = 'Toggle test summary' },
+      { '<leader>to', function() require('neotest').output.open { enter_on_open = true } end,       desc = 'Show test output' },
+      { '<leader>tO', function() require('neotest').output_panel.toggle() end,                      desc = 'Toggle output panel' },
+      { '<leader>td', function() require('neotest').run.run { strategy = 'dap' } end,               desc = 'Debug nearest test' },
+      { '<leader>tW', function() require('neotest').watch.toggle(vim.fn.expand '%') end,            desc = 'Watch test file' },
+      { '<leader>tS', function() require('neotest').run.stop() end,                                 desc = 'Stop running tests' },
     },
     config = function()
-      vim.g.VtrStripLeadingWhitespace = 0
-      vim.g.VtrClearEmptyLines = 0
-      vim.g.VtrAppendNewline = 1
+      require('neotest').setup {
+        adapters = {
+          require 'neotest-python' {
+            runner = 'pytest',
+            python = function()
+              local ok, venv = pcall(require, 'venv-selector')
+              if ok then
+                local python = venv.python()
+                if python then return python end
+              end
+              return 'python3'
+            end,
+          },
+        },
+      }
     end,
   },
   {

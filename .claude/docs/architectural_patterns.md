@@ -115,12 +115,20 @@ Configuration at `init.lua:763-788`:
 - **`lua/custom/plugins/init.lua`**: User additions (57 plugins)
 - **`lua/kickstart/plugins/`**: Optional kickstart modules (neo-tree, debug, gitsigns)
 
+## Testing Pattern
+
+**neotest** (`lua/custom/plugins/init.lua`): In-editor test runner with inline results, summary panel, and DAP integration.
+
+- Adapter: `neotest-python` with `pytest` runner
+- Python binary resolved from `venv-selector.nvim` (falls back to `python3`)
+- Keymaps under `<leader>t`: run nearest (`tr`), run file (`tf`), summary (`ts`), output (`to`/`tO`), debug (`td`), watch (`tW`), stop (`tS`)
+- Debug strategy delegates to existing DAP/debugpy config
+
 ## REPL/Terminal Pattern
 
 Multiple terminal integrations:
 
 - `toggleterm.nvim`: Floating terminal (`<A-t>`)
-- `vim-tmux-runner`: Send to tmux panes
 - `iron.nvim`: Language REPL (IPython)
 
 Pattern: `lua/custom/plugins/init.lua:1-30` (toggleterm), `lua/custom/plugins/init.lua:500-550` (iron)

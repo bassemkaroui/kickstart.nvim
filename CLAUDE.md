@@ -19,9 +19,10 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 | Fuzzy Finder   | Telescope + FZF                          |
 | File Explorer  | Neo-tree, Yazi                           |
 | Git            | Gitsigns, Neogit, Git-worktree, Fugitive |
+| Testing        | Neotest + neotest-python (pytest)        |
 | Debug          | DAP (nvim-dap)                           |
 | Theme          | Tokyonight (night)                       |
-| Terminal       | Toggleterm, Vim-tmux-runner              |
+| Terminal       | Toggleterm                               |
 
 ## Directory Structure
 
@@ -62,7 +63,7 @@ Leader key: `<Space>`
 | ----------- | -------------------------- |
 | `<leader>s` | Search (files, grep, help) |
 | `<leader>h` | Git hunks                  |
-| `<leader>t` | Toggle/Terminal            |
+| `<leader>t` | Toggle/Terminal/Tests      |
 | `<leader>b` | Buffer navigation          |
 | `<leader>d` | Debug/DAP                  |
 | `<leader>g` | Git operations             |
