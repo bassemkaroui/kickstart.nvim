@@ -30,8 +30,10 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 .
 ├── init.lua                    # Main config (1700 lines): options, keymaps, core plugins
 ├── lua/
-│   ├── custom/plugins/         # User plugins (57 plugins)
-│   │   └── init.lua
+│   ├── custom/
+│   │   ├── doppler.lua         # On-demand Doppler env loader (USING_DOPPLER in mise config)
+│   │   └── plugins/            # User plugins (57 plugins)
+│   │       └── init.lua
 │   └── kickstart/              # Kickstart modules
 │       ├── plugins/            # Optional: neo-tree, debug, gitsigns, lint, autopairs
 │       └── health.lua
@@ -45,6 +47,7 @@ This is a personal Neovim configuration based on Kickstart.nvim, extended with 5
 | ------------------------------------ | -------------------------------------- |
 | `init.lua`                           | Core configuration, LSP setup, keymaps |
 | `lua/custom/plugins/init.lua`        | Custom plugin definitions              |
+| `lua/custom/doppler.lua`             | Doppler secrets → `vim.env` (neotest + DBUI keymaps) |
 | `lua/kickstart/plugins/debug.lua`    | DAP debugging setup                    |
 | `lua/kickstart/plugins/gitsigns.lua` | Git hunk keymaps                       |
 | `~/.config/ruff/ruff.toml`           | Ruff user-level config (stowed from `~/.dotfiles/ruff/`) |

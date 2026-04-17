@@ -5,6 +5,13 @@
 
 local function shorter_name(filename) return filename:gsub(os.getenv 'HOME', '~'):gsub('/bin/python', '') end
 
+local function with_doppler(fn)
+  return function()
+    require('custom.doppler').load_env { force = true, sync = true }
+    fn()
+  end
+end
+
 ---@module 'lazy'
 ---@type LazySpec
 return {
@@ -332,20 +339,21 @@ return {
         { '<leader>Df', '<cmd>DBUIFindBuffer<cr>', desc = ' DB UI Find buffer' },
         { '<leader>Dl', '<cmd>DBUILastQueryInfo<cr>', desc = ' DB UI Last query infos' },
         { '<leader>Dr', '<cmd>DBUIRenameBuffer<cr>', desc = ' DB UI Rename buffer' },
-        { '<leader>Du', '<cmd>DBUIToggle<cr>', desc = ' DB UI Toggle' },
+        { '<leader>DR', '<cmd>DopplerReloadDB<cr>', desc = ' Reload Doppler + DBUI' },
+        { '<leader>Du', with_doppler(function() vim.cmd 'DBUIToggle' end), desc = ' DB UI Toggle' },
       }
     end,
   },
-  {
-    'tpope/vim-dadbod',
-    lazy = true,
-    dependencies = {
-      'kristijanhusak/vim-dadbod-ui',
-      'kristijanhusak/vim-dadbod-completion',
-    },
-    -- For postgres you need psql :
-    --    sudo nala install -y postgresql-client postgresql-client-common
-  },
+  -- {
+  --   'tpope/vim-dadbod',
+  --   lazy = true,
+  --   dependencies = {
+  --     'kristijanhusak/vim-dadbod-ui',
+  --     'kristijanhusak/vim-dadbod-completion',
+  --   },
+  --   -- For postgres you need psql :
+  --   --    sudo nala install -y postgresql-client postgresql-client-common
+  -- },
 
   -- Debugger
   'nvim-neotest/nvim-nio',
@@ -357,7 +365,7 @@ return {
     keys = {
       { '<leader>db', '<cmd>DapToggleBreakpoint<CR>', desc = 'Toggle debug breakpoint' },
       { '<leader>dC', "<cmd>lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition : '))<CR>", desc = 'Set Conditional breakpoint' },
-      { '<leader>dc', '<cmd>DapContinue<CR>', desc = 'Dap continue' },
+      { '<leader>dc', with_doppler(function() vim.cmd 'DapContinue' end), desc = 'Dap continue' },
       { '<leader>di', '<cmd>DapStepInto<CR>', desc = 'Dap step into' },
       { '<leader>do', '<cmd>DapStepOut<CR>', desc = 'Dap step out' },
       { '<leader>dn', '<cmd>DapStepOver<CR>', desc = 'Dap step over' },
@@ -416,12 +424,78 @@ return {
       'nvim-neotest/nvim-nio',
     },
     config = function()
-      local path = '~/.local/share/nvim/mason/packages/debugpy/venv/bin/python'
-      require('dap-python').setup(path)
-      require('dap-python').test_runner = 'pytest'
+      require('dap-python').setup 'uv'
+
+      local dap = require 'dap'
+
+      local function target_python()
+        local ok, venv = pcall(require, 'venv-selector')
+        if ok then
+          local p = venv.python()
+          if p then return p end
+        end
+        return 'python3'
+      end
+
+      -- Use the active venv (via venv-selector) when dap-python launches pytest
+      -- test_method / test_class / debug_selection. Without this, dap-python would
+      -- fall back to its own detection. Matches what neotest does.
+      require('dap-python').resolve_python = target_python
+
+      local function infer_module()
+        local buf = vim.api.nvim_buf_get_name(0)
+        if buf == '' then return '' end
+        local rel = vim.fn.fnamemodify(buf, ':.')
+        rel = rel:gsub('^src/', ''):gsub('%.py$', ''):gsub('/__init__$', '')
+        return (rel:gsub('/', '.'))
+      end
+
+      table.insert(dap.configurations.python, 1, {
+        type = 'python',
+        request = 'launch',
+        name = 'Launch module',
+        module = function() return vim.fn.input { prompt = 'Module: ', default = infer_module() } end,
+        console = 'integratedTerminal',
+        justMyCode = false,
+        pythonPath = target_python,
+        cwd = '${workspaceFolder}',
+      })
+
+      -- To save repeated prompts, drop a `.vscode/launch.json` in the project root.
+      -- It's the same format VS Code uses; nvim-dap reads it automatically on demand
+      -- (see `:help dap-providers`). No explicit loader call needed.
+      -- Example (./.vscode/launch.json):
+      -- {
+      --   "version": "0.2.0",
+      --   "configurations": [
+      --     {
+      --       "name": "Launch app",
+      --       "type": "debugpy",
+      --       "request": "launch",
+      --       "module": "myapp.main",
+      --       "console": "integratedTerminal",
+      --       "justMyCode": false,
+      --       "cwd": "${workspaceFolder}",
+      --       "pythonPath": "${workspaceFolder}/.venv/bin/python"
+      --     },
+      --     {
+      --       "name": "Alembic upgrade",
+      --       "type": "debugpy",
+      --       "request": "launch",
+      --       "module": "alembic",
+      --       "args": ["upgrade", "head"]
+      --     }
+      --   ]
+      -- }
+      -- Each entry becomes a pickable choice in DAP when you hit <leader>dc.
+
       vim.keymap.set('n', '<leader>dpm', "<cmd>lua require('dap-python').test_method()<CR>", { desc = 'Debug python method' })
       vim.keymap.set('n', '<leader>dpc', "<cmd>lua require('dap-python').test_class()<CR>", { desc = 'Debug python class' })
       vim.keymap.set('n', '<leader>dps', "<CMD>lua require('dap-python').debug_selection()<CR>", { desc = 'Debug python selection' })
+      vim.keymap.set('n', '<leader>dpM', function()
+        require('custom.doppler').load_env { force = true, sync = true }
+        dap.run(dap.configurations.python[1])
+      end, { desc = 'Debug python module' })
     end,
   },
   {
@@ -926,13 +1000,13 @@ return {
     ft = 'python',
     -- stylua: ignore
     keys = {
-      { '<leader>tr', function() require('neotest').run.run() end,                                  desc = 'Run nearest test' },
-      { '<leader>tf', function() require('neotest').run.run(vim.fn.expand '%') end,                 desc = 'Run test file' },
+      { '<leader>tr', with_doppler(function() require('neotest').run.run() end),                    desc = 'Run nearest test' },
+      { '<leader>tf', with_doppler(function() require('neotest').run.run(vim.fn.expand '%') end),   desc = 'Run test file' },
       { '<leader>ts', function() require('neotest').summary.toggle() end,                           desc = 'Toggle test summary' },
       { '<leader>to', function() require('neotest').output.open { enter_on_open = true } end,       desc = 'Show test output' },
       { '<leader>tO', function() require('neotest').output_panel.toggle() end,                      desc = 'Toggle output panel' },
-      { '<leader>td', function() require('neotest').run.run { strategy = 'dap' } end,               desc = 'Debug nearest test' },
-      { '<leader>tW', function() require('neotest').watch.toggle(vim.fn.expand '%') end,            desc = 'Watch test file' },
+      { '<leader>td', with_doppler(function() require('neotest').run.run { strategy = 'dap' } end), desc = 'Debug nearest test' },
+      { '<leader>tW', with_doppler(function() require('neotest').watch.toggle(vim.fn.expand '%') end), desc = 'Watch test file' },
       { '<leader>tS', function() require('neotest').run.stop() end,                                 desc = 'Stop running tests' },
     },
     config = function()
@@ -940,6 +1014,7 @@ return {
         adapters = {
           require 'neotest-python' {
             runner = 'pytest',
+            args = { '-vv' },
             python = function()
               local ok, venv = pcall(require, 'venv-selector')
               if ok then

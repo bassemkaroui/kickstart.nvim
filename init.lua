@@ -936,7 +936,6 @@ require('lazy').setup({
         --     },
         --   },
         -- },
-        debugpy = {},
         ansiblels = {},
         docker_compose_language_service = {},
         dockerls = {},
@@ -1130,7 +1129,6 @@ require('lazy').setup({
         },
         opts = {},
       },
-      'kristijanhusak/vim-dadbod-completion',
       'moyiz/blink-emoji.nvim',
       -- 'bydlw98/blink-cmp-env',
       'SergioRibera/cmp-dotenv',
@@ -1512,5 +1510,7 @@ require('lazy').setup({
     },
   },
 })
+
+require('custom.doppler').setup()
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et
