@@ -11,34 +11,25 @@ return {
   'christoomey/vim-tmux-navigator',
   {
     'nvim-treesitter/nvim-treesitter-context',
-    config = function()
-      require('treesitter-context').setup {
-        multiline_threshold = 1, -- Maximum number of lines to show for a single context
-      }
-    end,
+    opts = { multiline_threshold = 1 },
   },
   {
     'NeogitOrg/neogit',
     dependencies = {
-      'nvim-lua/plenary.nvim', -- required
-      'sindrets/diffview.nvim', -- optional - Diff integration
-
-      -- Only one of these is needed, not both.
-      'nvim-telescope/telescope.nvim', -- optional
-      -- 'ibhagwan/fzf-lua', -- optional
+      'nvim-lua/plenary.nvim',
+      'sindrets/diffview.nvim',
+      'nvim-telescope/telescope.nvim',
     },
-    init = function()
-      require('which-key').add {
-        { '<leader>g', group = '[G]it' },
-        { '<leader>gP', '<cmd>Neogit push<CR>', desc = 'git push' },
-        { '<leader>gb', '<cmd>Telescope git_branches<CR>', desc = 'git branch with telescope' },
-        { '<leader>gc', '<cmd>Neogit commit<CR>', desc = 'git commit' },
-        { '<leader>gf', '<cmd>Neogit kind=floating<CR>', desc = 'git status in floating mode' },
-        { '<leader>gl', '<cmd>Neogit log<CR>', desc = 'git log' },
-        { '<leader>gp', '<cmd>Neogit pull<CR>', desc = 'git pull' },
-        { '<leader>gs', '<cmd>Neogit<CR>', desc = 'git status' },
-      }
-    end,
+    cmd = 'Neogit',
+    keys = {
+      { '<leader>gP', '<cmd>Neogit push<CR>', desc = 'git push' },
+      { '<leader>gb', '<cmd>Telescope git_branches<CR>', desc = 'git branch with telescope' },
+      { '<leader>gc', '<cmd>Neogit commit<CR>', desc = 'git commit' },
+      { '<leader>gf', '<cmd>Neogit kind=floating<CR>', desc = 'git status in floating mode' },
+      { '<leader>gl', '<cmd>Neogit log<CR>', desc = 'git log' },
+      { '<leader>gp', '<cmd>Neogit pull<CR>', desc = 'git pull' },
+      { '<leader>gs', '<cmd>Neogit<CR>', desc = 'git status' },
+    },
     config = true,
   },
   -- {
@@ -78,26 +69,28 @@ return {
   },
   {
     'rmagatti/goto-preview',
+    keys = {
+      { 'gpd', desc = 'Preview definition' },
+      { 'gpt', desc = 'Preview type definition' },
+      { 'gpi', desc = 'Preview implementation' },
+      { 'gpD', desc = 'Preview declaration' },
+      { 'gpr', desc = 'Preview references' },
+      { 'gP', desc = 'Close preview windows' },
+    },
     config = function()
       require('goto-preview').setup {
-        width = 140, -- Width of the floating window
-        height = 40, -- Height of the floating window
-        border = { '↖', '─', '┐', '│', '┘', '─', '└', '│' }, -- Border characters of the floating window
+        width = 140,
+        height = 40,
+        border = { '↖', '─', '┐', '│', '┘', '─', '└', '│' },
         default_mappings = true,
-        debug = false, -- Print debug information
-        opacity = nil, -- 0-100 opacity level of the floating window where 100 is fully transparent.
-        resizing_mappings = false, -- Binds arrow keys to resizing the floating window.
-        post_open_hook = nil, -- A function taking two arguments, a buffer and a window to be ran as a hook.
-        references = { -- Configure the telescope UI for slowing the references cycling window.
+        references = {
           telescope = require('telescope.themes').get_dropdown { hide_preview = false },
         },
-        -- These two configs can also be passed down to the goto-preview definition and implementation calls for one off "peak" functionality.
-        focus_on_open = true, -- Focus the floating window when opening it.
-        dismiss_on_move = false, -- Dismiss the floating window when moving the cursor.
-        force_close = true, -- passed into vim.api.nvim_win_close's second argument. See :h nvim_win_close
-        bufhidden = 'wipe', -- the bufhidden option to set on the floating window. See :h bufhidden
-        stack_floating_preview_windows = true, -- Whether to nest floating windows
-        preview_window_title = { enable = true, position = 'left' }, -- Whether
+        focus_on_open = true,
+        force_close = true,
+        bufhidden = 'wipe',
+        stack_floating_preview_windows = true,
+        preview_window_title = { enable = true, position = 'left' },
       }
     end,
   },
@@ -343,27 +336,24 @@ return {
       }
     end,
   },
-  'kristijanhusak/vim-dadbod-completion',
   {
     'tpope/vim-dadbod',
-    opt = true,
-    requires = {
+    lazy = true,
+    dependencies = {
       'kristijanhusak/vim-dadbod-ui',
       'kristijanhusak/vim-dadbod-completion',
     },
-    config = function()
-      -- require('config.dadbod').setup()
-    end,
-    -- [[ info ]]
     -- For postgres you need psql :
     --    sudo nala install -y postgresql-client postgresql-client-common
-    --
   },
 
   -- Debugger
   'nvim-neotest/nvim-nio',
   {
     'mfussenegger/nvim-dap',
+    dependencies = {
+      { 'theHamsta/nvim-dap-virtual-text', opts = {} },
+    },
     keys = {
       { '<leader>db', '<cmd>DapToggleBreakpoint<CR>', desc = 'Toggle debug breakpoint' },
       { '<leader>dC', "<cmd>lua require('dap').set_breakpoint(vim.fn.input('Breakpoint condition : '))<CR>", desc = 'Set Conditional breakpoint' },
@@ -399,7 +389,6 @@ return {
         "<cmd>lua require('dapui').float_element(_, {height=40, width=80, position='center', enter=true})<CR>",
         { desc = 'Open element in a floating window' }
       )
-      vim.keymap.set('n', '<leader>ht', "<cmd>lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
       vim.keymap.set({ 'n', 'x' }, '<leader>de', "<CMD>lua require('dapui').eval()<CR><CMD>lua require('dapui').eval()<CR>", { desc = 'Dap Evaluate' })
       -- New keymap to evaluate a custom expression entered by the user
       vim.keymap.set('n', '<leader>dE', function()
@@ -419,10 +408,6 @@ return {
     -- },
   },
   {
-    'theHamsta/nvim-dap-virtual-text',
-    config = function() require('nvim-dap-virtual-text').setup() end,
-  },
-  {
     'mfussenegger/nvim-dap-python',
     ft = 'python',
     dependencies = {
@@ -430,7 +415,7 @@ return {
       'rcarriga/nvim-dap-ui',
       'nvim-neotest/nvim-nio',
     },
-    config = function(_, opts)
+    config = function()
       local path = '~/.local/share/nvim/mason/packages/debugpy/venv/bin/python'
       require('dap-python').setup(path)
       require('dap-python').test_runner = 'pytest'
@@ -701,34 +686,32 @@ return {
   -- },
   {
     'kevinhwang91/nvim-ufo',
-    dependencies = {
-      'kevinhwang91/promise-async',
-      config = function()
-        vim.opt.foldcolumn = '1' -- '0' is not bad
-        vim.opt.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
-        vim.opt.foldlevelstart = 99
-        vim.opt.foldenable = true
+    dependencies = { 'kevinhwang91/promise-async' },
+    config = function()
+      vim.opt.foldcolumn = '1' -- '0' is not bad
+      vim.opt.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+      vim.opt.foldlevelstart = 99
+      vim.opt.foldenable = true
 
-        -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
-        vim.keymap.set('n', 'z<space>', function()
-          if vim.opt.foldlevel:get() == 1 then
-            vim.opt.foldlevel = 99
-          else
-            vim.opt.foldlevel = 1
-          end
-        end, { noremap = true, silent = true, desc = 'Set fold level to 1' })
-        vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
-        vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
-        vim.keymap.set('n', 'zK', function()
-          local winid = require('ufo').peekFoldedLinesUnderCursor()
-          if not winid then vim.lsp.buf.hover() end
-        end, { desc = 'Peek fold' })
+      -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+      vim.keymap.set('n', 'z<space>', function()
+        if vim.opt.foldlevel:get() == 1 then
+          vim.opt.foldlevel = 99
+        else
+          vim.opt.foldlevel = 1
+        end
+      end, { noremap = true, silent = true, desc = 'Set fold level to 1' })
+      vim.keymap.set('n', 'zR', require('ufo').openAllFolds)
+      vim.keymap.set('n', 'zM', require('ufo').closeAllFolds)
+      vim.keymap.set('n', 'zK', function()
+        local winid = require('ufo').peekFoldedLinesUnderCursor()
+        if not winid then vim.lsp.buf.hover() end
+      end, { desc = 'Peek fold' })
 
-        require('ufo').setup {
-          provider_selector = function(bufnr, filetype, buftype) return { 'lsp', 'indent' } end,
-        }
-      end,
-    },
+      require('ufo').setup {
+        provider_selector = function(bufnr, filetype, buftype) return { 'lsp', 'indent' } end,
+      }
+    end,
   },
   {
     'amitds1997/remote-nvim.nvim',
@@ -776,15 +759,12 @@ return {
   },
   {
     'Vigemus/iron.nvim',
-    -- keys = {
-    --   { '<leader>i', '<cmd>IronRepl<cr>', desc = '󱠤 Toggle REPL' },
-    --   { '<leader>I', '<cmd>IronRestart<cr>', desc = '󱠤 Restart REPL' },
-    --
-    --   -- these keymaps need no right-hand-side, since that is defined by the
-    --   -- plugin config further below
-    --   { '+', mode = { 'n', 'x' }, desc = '󱠤 Send-to-REPL Operator' },
-    --   { '++', desc = '󱠤 Send Line to REPL' },
-    -- },
+    cmd = { 'IronRepl', 'IronRestart', 'IronFocus' },
+    keys = {
+      { '<leader>it', '<cmd>IronRepl<cr>', desc = 'Start REPL' },
+      { '<leader>ir', '<cmd>IronRestart<cr>', desc = 'Restart REPL' },
+      { '<leader>if', '<cmd>IronFocus<cr>', desc = 'Focus REPL' },
+    },
     config = function()
       local iron = require 'iron.core'
       local view = require 'iron.view'
@@ -835,10 +815,6 @@ return {
         ignore_blank_lines = true, -- ignore blank lines when sending visual select lines
       }
       -- iron also has a list of commands, see :h iron-commands for all available commands
-      vim.keymap.set('n', '<leader>it', '<cmd>IronRepl<cr>', { desc = 'Start REPL' })
-      vim.keymap.set('n', '<leader>ir', '<cmd>IronRestart<cr>', { desc = 'Restart REPL' })
-      vim.keymap.set('n', '<leader>if', '<cmd>IronFocus<cr>', { desc = 'Focus REPL' })
-      -- vim.keymap.set('n', '<space>rh', '<cmd>IronHide<cr>')
 
       -- -- Global function to send 'pinfo' command for the entire line to IPython REPL
       -- function _G.send_ipython_help()
@@ -854,22 +830,17 @@ return {
       --   vim.cmd 'IronFocus'
       -- end
 
-      function _G.send_ipython_help_visual()
-        local selected_text = vim.fn.getreg '"' -- Get the selected text from the default register
+      local function send_ipython_help_visual()
+        local selected_text = vim.fn.getreg '"'
         if selected_text then
-          -- Trim the selected text
-          selected_text = selected_text:gsub('^%s*(.-)%s*$', '%1') -- Remove leading and trailing whitespace
-          -- Append '?' and send to REPL
+          selected_text = selected_text:gsub('^%s*(.-)%s*$', '%1')
           iron.send(nil, { selected_text .. '?' })
           iron.send(nil, { '' })
-
-          -- Focus on the REPL
           vim.cmd 'IronFocus'
         end
       end
 
-      -- vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help()<CR>', { desc = 'Send line for documentation' })
-      vim.keymap.set('n', '<leader>ih', '<CMD>lua send_ipython_help_visual()<CR>', { desc = 'Send selected text for documentation' })
+      vim.keymap.set('n', '<leader>ih', send_ipython_help_visual, { desc = 'Send selected text for documentation' })
     end,
   },
   -- {
@@ -1002,7 +973,6 @@ return {
     opts = {
       filesize = 2, -- size of the file in MiB, the plugin round file sizes to the closest MiB
     },
-    config = function(_, opts) require('bigfile').setup(opts) end,
   },
   -- {
   --   'kelly-lin/ranger.nvim',
