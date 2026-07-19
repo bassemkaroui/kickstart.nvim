@@ -452,6 +452,34 @@ do
         vim.cmd 'TSUpdate'
         return
       end
+
+      -- <CUSTOM CHANGE> was lazy.nvim's `build = 'cd app && npm install'`
+      if name == 'markdown-preview.nvim' then
+        if vim.fn.executable 'npm' == 1 then run_build(name, { 'npm', 'install' }, vim.fs.joinpath(ev.data.path, 'app')) end
+        return
+      end
+
+      -- <CUSTOM CHANGE> was lazy.nvim's `build` function on fga.nvim: fetch and compile
+      -- the OpenFGA VS Code extension, which ships the LSP server fga.nvim talks to.
+      if name == 'fga.nvim' then
+        local lsp_dir = vim.fn.expand '~/.local/share/openfga-vscode-ext'
+        local lsp_server = lsp_dir .. '/server/out/server.node.js'
+        if vim.fn.filereadable(lsp_server) == 0 then
+          vim.notify('fga.nvim: Installing FGA LSP server...', vim.log.levels.INFO)
+          local cmds = string.format(
+            'git clone https://github.com/openfga/vscode-ext %s && cd %s && npm install && npm run compile',
+            vim.fn.shellescape(lsp_dir),
+            vim.fn.shellescape(lsp_dir)
+          )
+          local result = vim.fn.system(cmds)
+          if vim.v.shell_error == 0 then
+            vim.notify('fga.nvim: FGA LSP server installed successfully', vim.log.levels.INFO)
+          else
+            vim.notify('fga.nvim: Failed to install FGA LSP server:\n' .. result, vim.log.levels.ERROR)
+          end
+        end
+        return
+      end
     end,
   })
 end
