@@ -68,6 +68,19 @@ git diff upstream/lazy custom_config -- init.lua
 Because `custom_config` merged `upstream/lazy` in `8e6f550`, that diff is exactly
 our customizations with no upstream noise. It is 28 hunks, +600/-41.
 
+> **⚠ Scope the delta to the whole tree, not just `init.lua`.** Phase 1 replaced
+> `lua/kickstart/` wholesale, and two files there were customized — their changes
+> were silently lost and only caught later in code review. Always check:
+>
+> ```bash
+> git diff upstream/lazy custom_config --stat -- . ':!init.lua'
+> ```
+>
+> Customized outside `init.lua`: `lua/kickstart/plugins/lint.lua` (+5/-1),
+> `lua/kickstart/plugins/indent_line.lua` (+5/-1), `lua/custom/plugins/init.lua`
+> (Phase 3), `lua/custom/doppler.lua`, `after/queries/**` (both preserved, never
+> overwritten).
+
 ## Phase 1 — stock vim.pack baseline ✅ DONE
 
 - [x] `git checkout upstream/master -- init.lua lua/kickstart/ lua/custom/plugins/init.lua`
