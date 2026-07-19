@@ -1113,7 +1113,7 @@ require('lazy').setup({
         lua = { 'stylua' },
         python = { 'ruff_fix', 'ruff_format' },
         -- python = { 'ruff_organize_imports', 'ruff_format' }
-        markdown = { 'inject', 'prettier' },
+        markdown = { 'injected', 'prettier' },
         json = { 'prettier' },
         html = { 'prettier' },
         yaml = { 'prettier' },
