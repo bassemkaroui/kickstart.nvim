@@ -127,14 +127,14 @@ group.
 
 ### Plugin-adjacent config still living in `init.lua`
 
-- [ ] 8 · `432-438` (+1) — gitsigns `current_line_blame`
-- [ ] 9 · `467-476` (+1/-1) — which-key `<leader>b` group
-- [ ] 10 · `508-514` (+1) — todo-comments tweak
-- [ ] 11 · `536-560` (+15/-5) — telescope `defaults`
-- [ ] 12 · `565-593` (+17/-3) — telescope keymaps (`<leader>sf` etc.)
-- [ ] 13 · `648-693` (+40) — custom telescope picker
-- [ ] 14 · `704-712` (+3/-1) — opts tweak
-- [ ] 15 · `714-725` (+6) — blink.cmp capabilities wiring
+- [x] 8 · `432-438` (+1) — gitsigns `current_line_blame`
+- [x] 9 · `467-476` (+1/-1) — which-key `<leader>b` group
+- [x] 10 · `508-514` (+1) — todo-comments tweak
+- [x] 11 · `536-560` (+15/-5) — telescope `defaults`
+- [x] 12 · `565-593` (+17/-3) — telescope keymaps (`<leader>sf` etc.)
+- [x] 13 · `648-693` (+40) — custom telescope picker
+- [x] 14 · `704-712` (+3/-1) — opts tweak
+- [x] 15 · `714-725` (+6) — blink.cmp capabilities wiring
 
 ### LSP — the big one
 

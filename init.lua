@@ -496,6 +496,7 @@ do
       topdelete = { text = '‾' }, ---@diagnostic disable-line: missing-fields
       changedelete = { text = '~' }, ---@diagnostic disable-line: missing-fields
     },
+    current_line_blame = true, -- <CUSTOM CHANGE>
   }
 
   -- Useful plugin to show you pending keybinds.
@@ -510,6 +511,7 @@ do
       { '<leader>t', group = '[T]oggle' },
       { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } }, -- Enable gitsigns recommended keymaps first
       { 'gr', group = 'LSP Actions', mode = { 'n' } },
+      { '<leader>b', group = '[B]uffer' }, -- <CUSTOM CHANGE>
     },
   }
 
@@ -631,14 +633,25 @@ do
     -- You can put your default mappings / updates / etc. in here
     --  All the info you're looking for is in `:help telescope.setup()`
     --
-    -- defaults = {
-    --   mappings = {
-    --     i = { ['<c-enter>'] = 'to_fuzzy_refine' },
-    --   },
-    -- },
-    -- pickers = {}
+    -- <CUSTOM CHANGE> normal-mode `d` deletes a buffer from the picker, `q` closes it
+    defaults = {
+      mappings = {
+        -- i = { ['<c-enter>'] = 'to_fuzzy_refine' },
+        n = {
+          ['d'] = require('telescope.actions').delete_buffer,
+          ['q'] = require('telescope.actions').close,
+        },
+      },
+    },
     extensions = {
       ['ui-select'] = { require('telescope.themes').get_dropdown() },
+    },
+
+    -- <CUSTOM CHANGE> search hidden files (excluding .git) by default
+    pickers = {
+      find_files = { find_command = { 'fd', '--type', 'f', '--color', 'never', '--hidden', '--exclude', '.git' } },
+      live_grep = { additional_args = { '--hidden', '--glob', '!.git' } },
+      grep_string = { additional_args = { '--hidden', '--glob', '!.git' } },
     },
   }
 
@@ -650,15 +663,28 @@ do
   local builtin = require 'telescope.builtin'
   vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
   vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
-  vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
+  -- <CUSTOM CHANGE> include hidden files and follow symlinks
+  vim.keymap.set('n', '<leader>sf', function() builtin.find_files { hidden = true, follow = true } end, { desc = '[S]earch [F]iles' })
   vim.keymap.set('n', '<leader>ss', builtin.builtin, { desc = '[S]earch [S]elect Telescope' })
-  vim.keymap.set({ 'n', 'v' }, '<leader>sw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
-  vim.keymap.set('n', '<leader>sg', builtin.live_grep, { desc = '[S]earch by [G]rep' })
+  -- <CUSTOM CHANGE> searches hidden files and follows symlinks (was `{ 'n', 'v' }` + bare builtin)
+  vim.keymap.set('n', '<leader>sw', function()
+    builtin.grep_string {
+      additional_args = function(opts) return { '--hidden', '--glob', '!.git', '--follow' } end,
+    }
+  end, { desc = '[S]earch current [W]ord' })
+
+  -- <CUSTOM CHANGE> searches hidden files and follows symlinks
+  vim.keymap.set('n', '<leader>sg', function()
+    builtin.live_grep {
+      additional_args = function(opts) return { '--hidden', '--glob', '!.git', '--follow' } end,
+    }
+  end, { desc = '[S]earch by [G]rep' })
   vim.keymap.set('n', '<leader>sd', builtin.diagnostics, { desc = '[S]earch [D]iagnostics' })
   vim.keymap.set('n', '<leader>sr', builtin.resume, { desc = '[S]earch [R]esume' })
   vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
   vim.keymap.set('n', '<leader>sc', builtin.commands, { desc = '[S]earch [C]ommands' })
   vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
+  vim.keymap.set('n', '<leader>st', '<cmd>TodoTelescope<CR>', { desc = '[S]earch [T]odo comments' }) -- <CUSTOM CHANGE>
 
   -- Add Telescope-based LSP pickers when an LSP attaches to a buffer.
   -- If you later switch picker plugins, this is where to update these mappings.
@@ -719,6 +745,47 @@ do
 
   -- Shortcut for searching your Neovim configuration files
   vim.keymap.set('n', '<leader>sn', function() builtin.find_files { cwd = vim.fn.stdpath 'config', follow = true } end, { desc = '[S]earch [N]eovim files' })
+
+  -- <CUSTOM CHANGE> picker that jumps to `# --- section ---` markers in the current buffer
+  local pickers = require 'telescope.pickers'
+  local finders = require 'telescope.finders'
+  local conf = require('telescope.config').values
+  local actions = require 'telescope.actions'
+  local action_state = require 'telescope.actions.state'
+
+  vim.keymap.set('n', '<leader>sb', function()
+    local lines = vim.api.nvim_buf_get_lines(0, 0, -1, false)
+    local entries = {}
+    for i, line in ipairs(lines) do
+      if line:match '^#%s*%-%-%-.*%-%-%-' then table.insert(entries, { line = line, lnum = i }) end
+    end
+
+    pickers
+      .new({}, {
+        prompt_title = 'Section Markers',
+        finder = finders.new_table {
+          results = entries,
+          entry_maker = function(entry)
+            return {
+              value = entry,
+              display = entry.line,
+              ordinal = entry.line,
+            }
+          end,
+        },
+        sorter = conf.generic_sorter {},
+        previewer = false, -- disable preview
+        attach_mappings = function(prompt_bufnr, map)
+          actions.select_default:replace(function()
+            actions.close(prompt_bufnr)
+            local selection = action_state.get_selected_entry()
+            vim.api.nvim_win_set_cursor(0, { selection.value.lnum, 0 })
+          end)
+          return true
+        end,
+      })
+      :find()
+  end, { desc = 'Jump to # --- section' })
 end
 
 -- ============================================================
@@ -882,10 +949,13 @@ do
     gh 'mason-org/mason.nvim',
     gh 'mason-org/mason-lspconfig.nvim',
     gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
+    gh 'b0o/schemastore.nvim', -- <CUSTOM CHANGE> JSON/YAML schemas, consumed by the jsonls config (hunk 16)
   }
 
   -- Automatically install LSPs and related tools to stdpath for Neovim
-  require('mason').setup {}
+  require('mason').setup {
+    max_concurrent_installers = 2, -- <CUSTOM CHANGE>
+  }
 
   -- Ensure the servers and tools above are installed
   --
