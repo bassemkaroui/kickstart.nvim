@@ -11,3 +11,4 @@
 -- We therefore require our modules explicitly, in dependency order.
 require 'custom.plugins.ui'
 require 'custom.plugins.editor'
+require 'custom.plugins.git'
