@@ -416,6 +416,16 @@ do
   --  In this section we set up some autocommands to run build
   --  steps for certain plugins after they are installed or updated.
 
+  -- <CUSTOM CHANGE> `git` on this machine is a mise shim (`conda:git`), so every
+  --  invocation first walks the cwd for a `mise.toml`. vim.pack runs git *inside*
+  --  each plugin directory, and some plugins (neo-tree, yazi.nvim, claudecode.nvim)
+  --  ship their own `mise.toml` -- which mise then refuses to parse as untrusted,
+  --  failing the git call. Tell mise to ignore that whole subtree instead of
+  --  trusting upstream files that declare `[env]`, `[tools]` and templated tasks.
+  --  This only works via the env var: `ignored_config_paths` in mise's global
+  --  config.toml is read too late to affect config discovery.
+  vim.env.MISE_IGNORED_CONFIG_PATHS = vim.fs.joinpath(vim.fn.stdpath 'data', 'site', 'pack')
+
   local function run_build(name, cmd, cwd)
     local result = vim.system(cmd, { cwd = cwd }):wait()
     if result.code ~= 0 then
