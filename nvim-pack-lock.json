@@ -16,7 +16,8 @@
     },
     "blink.compat": {
       "rev": "1454f14a8d855a578ceeba77c62538fa1459a67c",
-      "src": "https://github.com/saghen/blink.compat"
+      "src": "https://github.com/saghen/blink.compat",
+      "version": "2.0.0 - 3.0.0"
     },
     "cmp-dotenv": {
       "rev": "4dd53aab60982f1f75848aec5e6214986263325e",

@@ -1250,12 +1250,15 @@ do
   -- blink.compat proxies the two nvim-cmp sources (dotenv, sql); it must be on the
   -- runtimepath before those providers are resolved.
   vim.pack.add {
-    gh 'saghen/blink.compat',
+    { src = gh 'saghen/blink.compat', version = vim.version.range '2.*' },
     gh 'moyiz/blink-emoji.nvim',
     -- gh 'bydlw98/blink-cmp-env',
     gh 'SergioRibera/cmp-dotenv',
     gh 'ray-x/cmp-sql',
   }
+  -- lazy.nvim called this via `opts = {}`; vim.pack needs it explicitly. It registers the
+  -- BlinkCmpAccept/Show/Hide -> nvim-cmp event bridge that compat sources rely on.
+  require('blink.compat').setup {}
 
   require('blink.cmp').setup {
     keymap = {
