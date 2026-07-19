@@ -1132,10 +1132,30 @@ do
   -- You can press `g?` for help in this menu.
   local ensure_installed = vim.tbl_keys(servers or {})
   vim.list_extend(ensure_installed, {
-    -- You can add other tools here that you want Mason to install
+    -- <CUSTOM CHANGE> tools that aren't LSP servers
+    -- Formatters (conform.nvim)
+    'stylua',
+    'prettier',
+    'shfmt',
+    -- Linters (nvim-lint)
+    'markdownlint',
+    'checkmake',
+    'mypy',
   })
 
   require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+
+  -- <CUSTOM CHANGE> foldingRange capability for nvim-ufo (plugin arrives in Phase 3)
+  vim.lsp.config('*', {
+    capabilities = {
+      textDocument = {
+        foldingRange = {
+          dynamicRegistration = false,
+          lineFoldingOnly = true,
+        },
+      },
+    },
+  })
 
   for name, server in pairs(servers) do
     vim.lsp.config(name, server)
@@ -1154,9 +1174,21 @@ do
     notify_on_error = false,
     format_on_save = function(bufnr)
       -- You can specify filetypes to autoformat on save here:
+      -- <CUSTOM CHANGE> mirrors the keys of `formatters_by_ft` below; upstream ships
+      -- this list empty, which would silently disable format-on-save entirely.
+      -- `lua` has no conform entry on purpose -- it formats via the stylua LSP
+      -- through `default_format_opts.lsp_format = 'fallback'`.
       local enabled_filetypes = {
-        -- lua = true,
-        -- python = true,
+        lua = true,
+        python = true,
+        markdown = true,
+        json = true,
+        html = true,
+        yaml = true,
+        sh = true,
+        bash = true,
+        zsh = true,
+        terraform = true,
       }
       if enabled_filetypes[vim.bo[bufnr].filetype] then
         return { timeout_ms = 500 }
@@ -1168,13 +1200,26 @@ do
       lsp_format = 'fallback', -- Use external formatters if configured below, otherwise use LSP formatting. Set to `false` to disable LSP formatting entirely.
     },
     -- You can also specify external formatters in here.
+    -- <CUSTOM CHANGE> our formatter set. NOTE: no `lua` entry on purpose -- upstream runs
+    -- stylua as an LSP formatter (`stylua = {}` in the `servers` table), and conform
+    -- reaches it via `default_format_opts.lsp_format = 'fallback'`. Adding
+    -- `lua = { 'stylua' }` here would format Lua buffers twice.
     formatters_by_ft = {
-      -- rust = { 'rustfmt' },
-      -- Conform can also run multiple formatters sequentially
-      -- python = { "isort", "black" },
-      --
-      -- You can use 'stop_after_first' to run the first available formatter from the list
-      -- javascript = { "prettierd", "prettier", stop_after_first = true },
+      python = { 'ruff_fix', 'ruff_format' },
+      -- python = { 'ruff_organize_imports', 'ruff_format' }
+      -- <CUSTOM CHANGE> `injected`, not `inject` -- custom_config has the typo, which makes
+      -- conform silently skip it ("Unknown formatter"). Formats fenced code blocks.
+      markdown = { 'injected', 'prettier' },
+      json = { 'prettier' },
+      html = { 'prettier' },
+      yaml = { 'prettier' },
+      sh = { 'shfmt' },
+      bash = { 'shfmt' },
+      zsh = { 'shfmt' },
+      terraform = { 'terraform_fmt' },
+    },
+    formatters = {
+      shfmt = { prepend_args = { '-i', '4' } }, -- <CUSTOM CHANGE>
     },
   }
 
@@ -1196,12 +1241,24 @@ do
   -- `friendly-snippets` contains a variety of premade snippets.
   --    See the README about individual language/framework/plugin snippets:
   --    https://github.com/rafamadriz/friendly-snippets
-  --
-  -- vim.pack.add { gh 'rafamadriz/friendly-snippets' }
-  -- require('luasnip.loaders.from_vscode').lazy_load()
+  -- <CUSTOM CHANGE> enabled (upstream ships this commented out)
+  vim.pack.add { gh 'rafamadriz/friendly-snippets' }
+  require('luasnip.loaders.from_vscode').lazy_load()
 
   -- [[ Autocomplete Engine ]]
   vim.pack.add { { src = gh 'saghen/blink.cmp', version = vim.version.range '1.*' } }
+
+  -- <CUSTOM CHANGE> completion sources referenced by `sources.providers` below.
+  -- blink.compat proxies the two nvim-cmp sources (dotenv, sql); it must be on the
+  -- runtimepath before those providers are resolved.
+  vim.pack.add {
+    gh 'saghen/blink.compat',
+    gh 'moyiz/blink-emoji.nvim',
+    -- gh 'bydlw98/blink-cmp-env',
+    gh 'SergioRibera/cmp-dotenv',
+    gh 'ray-x/cmp-sql',
+  }
+
   require('blink.cmp').setup {
     keymap = {
       -- 'default' (recommended) for mappings similar to built-in completions
@@ -1227,6 +1284,11 @@ do
       -- See `:help blink-cmp-config-keymap` for defining your own keymap
       preset = 'default',
 
+      -- <CUSTOM CHANGE>
+      ['<A-CR>'] = {
+        function(cmp) cmp.show() end,
+      },
+
       -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
       --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
     },
@@ -1240,11 +1302,72 @@ do
     completion = {
       -- By default, you may press `<c-space>` to show the documentation.
       -- Optionally, set `auto_show = true` to show the documentation after a delay.
-      documentation = { auto_show = false, auto_show_delay_ms = 500 },
+      -- <CUSTOM CHANGE> auto-show docs + rounded borders
+      documentation = { auto_show = true, auto_show_delay_ms = 500, window = { border = 'rounded' } },
+      menu = { border = 'rounded' },
     },
 
+    -- <CUSTOM CHANGE> emoji/dotenv sources by default; dadbod+sql for SQL buffers
     sources = {
-      default = { 'lsp', 'path', 'snippets' },
+      -- default = { 'lsp', 'path', 'snippets' },
+      default = { 'lsp', 'path', 'emoji', 'dotenv' },
+      per_filetype = {
+        -- NOTE: `dadbod` resolves to vim-dadbod-completion, which arrives in Phase 3
+        sql = { 'snippets', 'dadbod', 'sql' },
+      },
+      providers = {
+        dadbod = { name = 'Dadbod', module = 'vim_dadbod_completion.blink' },
+        emoji = {
+          module = 'blink-emoji',
+          name = 'Emoji',
+          score_offset = 15, -- Tune by preference
+          opts = { insert = true }, -- Insert emoji (default) or complete its name
+          should_show_items = function()
+            return vim.tbl_contains(
+              -- Enable emoji completion only for git commits and markdown.
+              -- By default, enabled for all file-types.
+              { 'gitcommit', 'markdown', 'python' },
+              vim.o.filetype
+            )
+          end,
+        },
+        -- env = {
+        --   name = 'Env',
+        --   module = 'blink-cmp-env',
+        --   --- @type blink-cmp-env.Options
+        --   opts = {
+        --     -- item_kind = require('blink.cmp.types').CompletionItemKind.Variable,
+        --     show_braces = false,
+        --     show_documentation_window = true,
+        --   },
+        -- },
+        dotenv = {
+          name = 'dotenv',
+          module = 'blink.compat.source',
+
+          -- all blink.cmp source config options work as normal:
+          score_offset = -3,
+
+          -- this table is passed directly to the proxied completion source
+          -- as the `option` field in nvim-cmp's source config
+          --
+          -- this is NOT the same as the opts in a plugin's lazy.nvim spec
+          opts = { path = '.' },
+        },
+        sql = {
+          name = 'sql',
+          module = 'blink.compat.source',
+
+          -- all blink.cmp source config options work as normal:
+          score_offset = -3,
+
+          -- this table is passed directly to the proxied completion source
+          -- as the `option` field in nvim-cmp's source config
+          --
+          -- this is NOT the same as the opts in a plugin's lazy.nvim spec
+          opts = {},
+        },
+      },
     },
 
     snippets = { preset = 'luasnip' },
@@ -1256,10 +1379,11 @@ do
     -- the rust implementation via `'prefer_rust_with_warning'`
     --
     -- See `:help blink-cmp-config-fuzzy` for more information
-    fuzzy = { implementation = 'lua' },
+    -- fuzzy = { implementation = 'lua' },
+    fuzzy = { implementation = 'prefer_rust_with_warning' }, -- <CUSTOM CHANGE>
 
     -- Shows a signature help window while you type arguments for a function
-    signature = { enabled = true },
+    signature = { enabled = true, window = { border = 'rounded' } }, -- <CUSTOM CHANGE>
   }
 end
 

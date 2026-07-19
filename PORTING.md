@@ -157,13 +157,13 @@ group.
 > `lua_ls` formatting is already disabled either way, so this is only about
 > stylua-as-LSP vs stylua-via-conform.
 
-- [ ] 17 · `1036-1065` (+20/-1) — conform setup
-- [ ] 18 · `1085-1103` (+12/-2) — `format_on_save` allow-list (`enabled_filetypes`)
-- [ ] 19 · `1110-1129` (+14/-6) — `formatters_by_ft` + `shfmt` args
-- [ ] 20 · `1148-1164` (+8/-6) — blink.cmp keymaps
-- [ ] 21 · `1187-1196` (+4) — `<A-CR>` mapping
-- [ ] 22 · `1204-1272` (**+60**/-2) — blink.cmp sources, docs popup, emoji/dadbod
-- [ ] 23 · `1278-1288` (+3/-2) — blink fuzzy impl
+- [x] 17 · `1036-1065` (+20/-1) — conform setup
+- [x] 18 · `1085-1103` (+12/-2) — `format_on_save` allow-list (`enabled_filetypes`)
+- [x] 19 · `1110-1129` (+14/-6) — `formatters_by_ft` + `shfmt` args
+- [x] 20 · `1148-1164` (+8/-6) — blink.cmp keymaps
+- [x] 21 · `1187-1196` (+4) — `<A-CR>` mapping
+- [x] 22 · `1204-1272` (**+60**/-2) — blink.cmp sources, docs popup, emoji/dadbod
+- [x] 23 · `1278-1288` (+3/-2) — blink fuzzy impl
 
 ### Editing / treesitter / tail
 
