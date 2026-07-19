@@ -569,7 +569,7 @@ do
   -- - saiw) - [S]urround [A]dd [I]nner [W]ord [)]Paren
   -- - sd'   - [S]urround [D]elete [']quotes
   -- - sr)'  - [S]urround [R]eplace [)] [']
-  require('mini.surround').setup()
+  -- require('mini.surround').setup() -- <CUSTOM CHANGE> disabled in favour of tpope/vim-surround
 
   -- Simple and easy statusline.
   --  You could remove this setup call if you don't like it,
@@ -1207,8 +1207,6 @@ do
     formatters_by_ft = {
       python = { 'ruff_fix', 'ruff_format' },
       -- python = { 'ruff_organize_imports', 'ruff_format' }
-      -- <CUSTOM CHANGE> `injected`, not `inject` -- custom_config has the typo, which makes
-      -- conform silently skip it ("Unknown formatter"). Formats fenced code blocks.
       markdown = { 'injected', 'prettier' },
       json = { 'prettier' },
       html = { 'prettier' },
@@ -1397,12 +1395,23 @@ do
   --
   --  See `:help nvim-treesitter-intro`
 
+  -- <CUSTOM CHANGE> Register custom predicate for mise TOML injection queries.
+  -- This was lazy.nvim's `init` hook; vim.pack has no equivalent, and the predicate
+  -- is a core `vim.treesitter` API, so it just runs before the parsers are used.
+  vim.treesitter.query.add_predicate('is-mise?', function(_, _, bufnr, _)
+    local filepath = vim.api.nvim_buf_get_name(tonumber(bufnr) or 0)
+    local filename = vim.fn.fnamemodify(filepath, ':t')
+    return string.match(filename, '.*mise.*%.toml$') ~= nil
+  end, { force = true, all = false })
+
   -- NOTE: You can also specify a branch or a specific commit
   vim.pack.add { { src = gh 'nvim-treesitter/nvim-treesitter', version = 'main' } }
 
   -- Ensure basic parsers are installed
   local parsers = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' }
-  require('nvim-treesitter').install(parsers)
+  vim.list_extend(parsers, { 'python', 'dockerfile', 'sql', 'json', 'yaml', 'toml', 'kdl' }) -- <CUSTOM CHANGE>
+  -- <CUSTOM CHANGE> limit parallel parser compilations to avoid freezing remote machines
+  require('nvim-treesitter').install(parsers, { max_jobs = 2 })
 
   ---@param buf integer
   ---@param language string
@@ -1447,6 +1456,74 @@ do
       end
     end,
   })
+
+  -- <CUSTOM CHANGE> incremental selection using native vim.treesitter API
+  -- (replaces removed nvim-treesitter.configs incremental_selection module)
+  local selection_stack = {}
+
+  local function reset_stack(buf) selection_stack[buf] = nil end
+
+  vim.api.nvim_create_autocmd('ModeChanged', {
+    pattern = '*:n',
+    callback = function() reset_stack(vim.api.nvim_get_current_buf()) end,
+  })
+
+  -- Init / expand selection: <A-i>
+  vim.keymap.set('n', '<A-i>', function()
+    local buf = vim.api.nvim_get_current_buf()
+    local node = vim.treesitter.get_node()
+    if not node then return end
+    selection_stack[buf] = { node }
+    local sr, sc, er, ec = node:range()
+    vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+    vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+    vim.cmd 'normal! gv'
+  end, { desc = 'Init treesitter selection' })
+
+  vim.keymap.set('v', '<A-i>', function()
+    local buf = vim.api.nvim_get_current_buf()
+    local stack = selection_stack[buf]
+    if not stack or #stack == 0 then return end
+    local current = stack[#stack]
+    local parent = current:parent()
+    if not parent then return end
+    table.insert(stack, parent)
+    local sr, sc, er, ec = parent:range()
+    vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+    vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+    vim.cmd 'normal! gv'
+  end, { desc = 'Expand treesitter selection' })
+
+  -- Shrink selection: <A-d>
+  vim.keymap.set('v', '<A-d>', function()
+    local buf = vim.api.nvim_get_current_buf()
+    local stack = selection_stack[buf]
+    if not stack or #stack <= 1 then return end
+    table.remove(stack)
+    local node = stack[#stack]
+    local sr, sc, er, ec = node:range()
+    vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+    vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+    vim.cmd 'normal! gv'
+  end, { desc = 'Shrink treesitter selection' })
+
+  -- Expand to scope (named parent): <A-s>
+  vim.keymap.set('v', '<A-s>', function()
+    local buf = vim.api.nvim_get_current_buf()
+    local stack = selection_stack[buf]
+    if not stack or #stack == 0 then return end
+    local current = stack[#stack]
+    local parent = current:parent()
+    while parent and not parent:named() do
+      parent = parent:parent()
+    end
+    if not parent then return end
+    table.insert(stack, parent)
+    local sr, sc, er, ec = parent:range()
+    vim.fn.setpos("'<", { buf, sr + 1, sc + 1, 0 })
+    vim.fn.setpos("'>", { buf, er + 1, ec, 0 })
+    vim.cmd 'normal! gv'
+  end, { desc = 'Expand treesitter selection to scope' })
 end
 
 -- ============================================================
@@ -1464,17 +1541,20 @@ do
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
   -- require 'kickstart.plugins.debug'
-  -- require 'kickstart.plugins.indent_line'
-  -- require 'kickstart.plugins.lint'
-  -- require 'kickstart.plugins.autopairs'
-  -- require 'kickstart.plugins.neo-tree'
-  -- require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
+  -- <CUSTOM CHANGE> these five are enabled
+  require 'kickstart.plugins.indent_line'
+  require 'kickstart.plugins.lint'
+  require 'kickstart.plugins.autopairs'
+  require 'kickstart.plugins.neo-tree'
+  require 'kickstart.plugins.gitsigns' -- adds gitsigns recommended keymaps
 
   -- NOTE: You can add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --
   --  Uncomment the following line and add your plugins to `lua/custom/plugins/*.lua` to get going.
-  -- require 'custom.plugins'
+  require 'custom.plugins' -- <CUSTOM CHANGE>
 end
+
+require('custom.doppler').setup() -- <CUSTOM CHANGE>
 
 -- The line beneath this is called `modeline`. See `:help modeline`
 -- vim: ts=2 sts=2 sw=2 et

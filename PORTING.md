@@ -110,7 +110,7 @@ Functional checks all pass:
   `nvim --headless -c 'lua vim.wait(150000, function() return false end)' -c 'qa!'`
 - **Parsers land in `site/parser/`**, not under the plugin dir.
 
-## Phase 2 — re-apply our `init.lua` changes (28 hunks)
+## Phase 2 — re-apply our `init.lua` changes (28 hunks) ✅ DONE
 
 Line ranges refer to `custom_config:init.lua`. Work top-down; boot after each
 group.
@@ -167,18 +167,46 @@ group.
 
 ### Editing / treesitter / tail
 
-- [ ] 24 · `1342-1348` (+1/-1) — mini.surround / mini config
-- [ ] 25 · `1368-1386` (+10/-1) — plugin `init` function
-- [ ] 26 · `1425-1498` (**+68**) — native treesitter incremental selection (`<A-i>`),
+- [x] 24 · `1342-1348` (+1/-1) — mini.surround / mini config
+- [x] 25 · `1368-1386` (+10/-1) — plugin `init` function
+- [x] 26 · `1425-1498` (**+68**) — native treesitter incremental selection (`<A-i>`),
       replaces the removed `nvim-treesitter.configs` module
-- [ ] 27 · `1506-1522` (+6/-6) — kickstart module requires
-- [ ] 28 · `1544-1549` (+1) — `require('custom.doppler').setup()`
+- [x] 27 · `1506-1522` (+6/-6) — kickstart module requires
+- [x] 28 · `1544-1549` (+1) — `require('custom.doppler').setup()`
 
 ### Carry-over decisions already made (keep these)
 
-- [ ] `lua_ls` formatting stays disabled — stylua-via-conform owns Lua
-- [ ] mini.ai next/last objects stay remapped to `aa`/`ii`
-- [ ] `format_on_save` stays an allow-list; keep it in sync with `formatters_by_ft`
+- [x] `lua_ls` formatting stays disabled — **decision (a)**: stylua runs as an LSP
+      server, conform has no `lua` entry and reaches it via `lsp_format = 'fallback'`
+- [x] mini.ai next/last objects stay remapped to `aa`/`ii`
+- [x] `format_on_save` stays an allow-list; keep it in sync with `formatters_by_ft`
+      (`lua` is in the allow-list but deliberately absent from `formatters_by_ft`)
+
+## Phase 2 ✅ DONE — 28/28 hunks
+
+Verified per filetype after porting:
+
+| Filetype | Formatters |
+| -------- | ---------- |
+| python | `ruff_fix`, `ruff_format` |
+| markdown | `injected`, `prettier` |
+| json / html / yaml | `prettier` |
+| sh / bash / zsh | `shfmt` (`-i 4`) |
+| lua | LSP fallback → stylua |
+| terraform | none — `terraform` CLI absent on this host (same on `custom_config`) |
+
+LSP attach: python → `pyright`+`ruff`, json → `jsonls`, yaml → `yamlls`,
+lua → `lua_ls`+`stylua`. Mason: 20 packages. `vim.pack`: 30 plugins.
+
+### Probe gotchas (my test bugs, not config bugs — don't repeat)
+
+- `nvim_get_keymap` returns `<Leader>x` with the leader **already resolved** to a
+  literal space, so matching the string `"<Leader>x"` always fails.
+- It also returns Alt maps in canonical `<M-i>` form, not `<A-i>`.
+  Use `vim.fn.maparg(lhs, mode, false, true)` instead of string-matching.
+- gitsigns config lives at `require('gitsigns.config').config`, not `.config` on
+  the main module; telescope picker overrides at `require('telescope.config').pickers`,
+  not under `.values`.
 
 ## Phase 3 — port 76 plugins (eagerly first)
 
