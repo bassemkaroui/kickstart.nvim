@@ -22,6 +22,20 @@ vim.pack.add {
 vim.pack.add { gh 'nvim-treesitter/nvim-treesitter-context' }
 require('treesitter-context').setup { multiline_threshold = 1 }
 
+-- Alternative floating terminal (kept for reference; adapted to vim.pack)
+-- vim.pack.add { gh 'numToStr/FTerm.nvim' }
+-- require('FTerm').setup {
+--   blend = 5,
+--   dimensions = {
+--     height = 0.90,
+--     width = 0.90,
+--     x = 0.5,
+--     y = 0.5,
+--   },
+-- }
+-- vim.keymap.set('n', '<A-t>', '<CMD>lua require("FTerm").toggle()<CR>')
+-- vim.keymap.set('t', '<A-t>', '<C-\\><C-n><CMD>lua require("FTerm").toggle()<CR>')
+
 -- Floating terminal
 vim.pack.add { { src = gh 'akinsho/toggleterm.nvim', version = vim.version.range '*' } }
 require('toggleterm').setup {
@@ -145,6 +159,11 @@ vim.pack.add { gh 'LunarVim/bigfile.nvim' }
 require('bigfile').setup {
   filesize = 2, -- size of the file in MiB, the plugin round file sizes to the closest MiB
 }
+
+-- Alternative file manager (kept for reference; adapted to vim.pack)
+-- vim.pack.add { gh 'kelly-lin/ranger.nvim' }
+-- require('ranger-nvim').setup { replace_netrw = true }
+-- vim.keymap.set('n', '<leader>lr', function() require('ranger-nvim').open(true) end, { noremap = true })
 
 -- File manager. snacks.nvim is a hard dependency of yazi.nvim.
 vim.pack.add {

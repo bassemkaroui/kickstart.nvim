@@ -68,6 +68,17 @@ vim.keymap.set('n', '<leader>dE', function()
   end
 end, { desc = 'Dap Evaluate Custom Expression' })
 
+-- Alternative dap-ui keymaps (kept for reference; adapted to vim.pack)
+-- vim.keymap.set('n', '<leader>dt', ':DapUiToggle<CR>', { desc = 'DapUI Toggle' })
+-- vim.keymap.set('n', '<leader>dr', ":lua require('dapui').open({reset = true})<CR>", { desc = 'Reset DapUI' })
+-- vim.keymap.set('n', '<leader>ht', ":lua require('harpoon.ui').toggle_quick_menu()<CR>", { desc = 'Toggle DapUI in Harpoon' })
+
+-- f-strings (kept for reference; adapted to vim.pack)
+-- - auto-convert strings to f-strings when typing `{}` in a string
+-- - also auto-converts f-strings back to regular strings when removing `{}`
+-- nvim-treesitter is added in init.lua SECTION 9.
+-- vim.pack.add { gh 'chrisgrieser/nvim-puppeteer' }
+
 -- Python debugging
 vim.pack.add { gh 'mfussenegger/nvim-dap-python' }
 require('dap-python').setup 'uv'
@@ -108,6 +119,29 @@ table.insert(dap.configurations.python, 1, {
 -- To save repeated prompts, drop a `.vscode/launch.json` in the project root.
 -- It's the same format VS Code uses; nvim-dap reads it automatically on demand
 -- (see `:help dap-providers`). No explicit loader call needed.
+-- Example (./.vscode/launch.json):
+-- {
+--   "version": "0.2.0",
+--   "configurations": [
+--     {
+--       "name": "Launch app",
+--       "type": "debugpy",
+--       "request": "launch",
+--       "module": "myapp.main",
+--       "console": "integratedTerminal",
+--       "justMyCode": false,
+--       "cwd": "${workspaceFolder}",
+--       "pythonPath": "${workspaceFolder}/.venv/bin/python"
+--     },
+--     {
+--       "name": "Alembic upgrade",
+--       "type": "debugpy",
+--       "request": "launch",
+--       "module": "alembic",
+--       "args": ["upgrade", "head"]
+--     }
+--   ]
+-- }
 -- Each entry becomes a pickable choice in DAP when you hit <leader>dc.
 
 vim.keymap.set('n', '<leader>dpm', "<cmd>lua require('dap-python').test_method()<CR>", { desc = 'Debug python method' })
@@ -223,10 +257,15 @@ iron.setup {
 
 -- -- Global function to send 'pinfo' command for the entire line to IPython REPL
 -- function _G.send_ipython_help()
+--   -- Get the entire line under the cursor
 --   local line = vim.fn.getline '.'
+--   -- Create the pinfo command without adding an extra newline
 --   local pinfo_command = line .. '?'
+--   -- Send the command to the REPL
 --   iron.send(nil, { pinfo_command })
+--   -- Manually send a newline to execute the command
 --   iron.send(nil, { '' })
+--   -- Focus on the REPL
 --   vim.cmd 'IronFocus'
 -- end
 
@@ -244,6 +283,19 @@ vim.keymap.set('n', '<leader>ih', send_ipython_help_visual, { desc = 'Send selec
 vim.keymap.set('n', '<leader>it', '<cmd>IronRepl<cr>', { desc = 'Start REPL' })
 vim.keymap.set('n', '<leader>ir', '<cmd>IronRestart<cr>', { desc = 'Restart REPL' })
 vim.keymap.set('n', '<leader>if', '<cmd>IronFocus<cr>', { desc = 'Focus REPL' })
+
+-- <CUSTOM CHANGE> otter.nvim — LSP features (completion, diagnostics) for embedded languages in mise TOML
+-- Filetype-scoped variant (kept for reference; adapted to vim.pack). Under lazy.nvim this
+-- used `ft = { 'toml' }` to defer loading; vim.pack has no ft trigger, so the equivalent is
+-- to defer the `vim.pack.add` itself inside the autocmd:
+-- vim.api.nvim_create_autocmd('FileType', {
+--   pattern = 'toml',
+--   group = vim.api.nvim_create_augroup('EmbedToml', {}),
+--   callback = function()
+--     vim.pack.add { gh 'jmbuhr/otter.nvim' }
+--     require('otter').activate()
+--   end,
+-- })
 
 -- Embedded-language LSP (used for TOML with injected code)
 vim.pack.add { gh 'jmbuhr/otter.nvim' }

@@ -25,6 +25,55 @@ vim.keymap.set('n', '<leader>gs', '<cmd>Neogit<CR>', { desc = 'git status' })
 vim.pack.add { gh 'tpope/vim-fugitive' }
 vim.keymap.set('n', '<leader>gd', '<CMD>Gvdiffsplit!<CR>', { desc = 'Gvdiffsplit' })
 
+-- Predecessor worktree plugin (kept for reference; adapted to vim.pack).
+-- telescope + plenary come from init.lua SECTION 5.
+-- vim.pack.add { gh 'ThePrimeagen/git-worktree.nvim' }
+-- require('git-worktree').setup()
+-- require('telescope').load_extension 'git_worktree'
+--
+-- local Job = require 'plenary.job'
+--
+-- -- Define the custom function
+-- local function create_git_worktree_and_configure()
+--   -- Call the create_git_worktree function from the telescope extension
+--   require('telescope').extensions.git_worktree.create_git_worktree()
+--
+--   -- Function to check and configure remote.origin.fetch
+--   local function check_and_configure_fetch()
+--     -- Check the current value of remote.origin.fetch
+--     Job:new({
+--       command = 'git',
+--       args = { 'config', '--get', 'remote.origin.fetch' },
+--       on_exit = function(j, return_val)
+--         local output = table.concat(j:result(), '\n')
+--         if output ~= '+refs/heads/*:refs/remotes/origin/*' then
+--           -- Configure remote.origin.fetch if it's not set correctly
+--           Job:new({
+--             command = 'git',
+--             args = { 'config', 'remote.origin.fetch', '+refs/heads/*:refs/remotes/origin/*' },
+--             on_exit = function(j, return_val)
+--               if return_val == 0 then
+--                 print 'Successfully configured remote.origin.fetch'
+--               else
+--                 print 'Failed to configure remote.origin.fetch'
+--               end
+--             end,
+--           }):start()
+--         else
+--           print 'remote.origin.fetch is already configured correctly'
+--         end
+--       end,
+--     }):start()
+--   end
+--
+--   -- Call the function to check and configure fetch
+--   check_and_configure_fetch()
+-- end
+--
+-- -- Set the keymap
+-- vim.keymap.set('n', '<Leader>gW', create_git_worktree_and_configure, { desc = 'Create a new worktree and configure fetch' })
+-- vim.keymap.set('n', '<Leader>gw', "<CMD>lua require('telescope').extensions.git_worktree.git_worktrees()<CR>", { desc = 'Show git worktrees' })
+
 -- Worktrees
 vim.pack.add { { src = gh 'polarmutex/git-worktree.nvim', version = vim.version.range '^2' } }
 

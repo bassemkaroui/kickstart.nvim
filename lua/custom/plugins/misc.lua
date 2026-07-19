@@ -43,6 +43,21 @@ require('which-key').add {
   { '<leader>Du', with_doppler(function() vim.cmd 'DBUIToggle' end), desc = ' DB UI Toggle' },
 }
 
+-- Alternative dadbod entry point (kept for reference; adapted to vim.pack).
+-- For postgres you need psql :
+--    sudo nala install -y postgresql-client postgresql-client-common
+-- vim.pack.add {
+--   gh 'tpope/vim-dadbod',
+--   gh 'kristijanhusak/vim-dadbod-ui',
+--   gh 'kristijanhusak/vim-dadbod-completion',
+-- }
+
+-- YAML schema picker (kept for reference; adapted to vim.pack).
+-- nvim-lspconfig / plenary / telescope all come from init.lua.
+-- vim.pack.add { gh 'someone-stole-my-name/yaml-companion.nvim' }
+-- require('telescope').load_extension 'yaml_schema'
+-- vim.keymap.set('n', '<leader>y', '<cmd>Telescope yaml_schema<CR>', { desc = 'Select a yaml schema' })
+
 -- Remote development
 vim.pack.add { { src = gh 'amitds1997/remote-nvim.nvim', version = 'main' } }
 require('remote-nvim').setup {
@@ -71,6 +86,52 @@ vim.keymap.set('n', '<leader>rc', function()
     print 'Remote name is required.'
   end
 end, { desc = 'Cleanup a remote Neovim' })
+
+-- Alternative markdown previewers (kept for reference; adapted to vim.pack)
+--
+-- github-preview:
+-- vim.pack.add { gh 'wallpants/github-preview.nvim' }
+-- local gpreview = require 'github-preview'
+-- gpreview.setup {
+--   -- config goes here
+-- }
+-- local fns = gpreview.fns
+-- vim.keymap.set('n', '<leader>tm', fns.toggle)
+-- -- vim.keymap.set('n', '<leader>mps', fns.single_file_toggle)
+-- -- vim.keymap.set('n', '<leader>mpd', fns.details_tags_toggle)
+--
+-- markdown-preview installed via its Lua installer instead of `npm install`.
+-- Under lazy.nvim this was `build = function() vim.fn['mkdp#util#install']() end`;
+-- with vim.pack it belongs in the PackChanged autocmd in init.lua SECTION 3:
+--   if name == 'markdown-preview.nvim' then vim.fn['mkdp#util#install']() end
+-- vim.pack.add { gh 'iamcco/markdown-preview.nvim' }
+-- vim.keymap.set('n', '<leader>tm', '<CMD>MarkdownPreviewToggle<CR>', { desc = 'Toggle markdown preview' })
+--
+-- render-markdown (in-buffer rendering rather than a browser preview).
+-- Icons come from mini.icons via MiniIcons.mock_nvim_web_devicons() in init.lua.
+-- vim.pack.add { gh 'MeanderingProgrammer/render-markdown.nvim' }
+-- require('render-markdown').setup { render_modes = { 'n', 'c' } }
+
+-- Tmux runner (kept for reference; adapted to vim.pack).
+-- Under lazy.nvim this was gated by `enabled = os.getenv 'TMUX' ~= nil`; vim.pack has no
+-- `enabled` field, so guard the add with a plain `if`.
+-- if os.getenv 'TMUX' ~= nil then
+--   vim.pack.add { gh 'christoomey/vim-tmux-runner' }
+--   vim.g.VtrStripLeadingWhitespace = 0
+--   vim.g.VtrClearEmptyLines = 0
+--   vim.g.VtrAppendNewline = 1
+--   vim.keymap.set('n', '<leader>tC', '<cmd>VtrClearRunner<cr>', { desc = 'Clear Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tF', '<cmd>VtrFocusRunner<cr>', { desc = 'Focus Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tR', '<cmd>VtrReorientRunner<cr>', { desc = 'Reorient Tmux Runner' })
+--   -- vim.keymap.set('n', '<leader>ta', '<cmd>VtrReattachRunner<cr>', { desc = 'Reattach Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tc', '<cmd>VtrFlushCommand<cr>', { desc = 'Flush Tmux Runner Command' })
+--   vim.keymap.set('n', '<leader>tf', '<cmd>VtrSendFile<cr>', { desc = 'Send File to Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tk', '<cmd>VtrKillRunner<cr>', { desc = 'Kill Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tl', '<cmd>VtrSendLinesToRunner<cr>', { desc = 'Send Lines to Tmux Runner' })
+--   vim.keymap.set('n', '<leader>to', "<cmd>VtrOpenRunner {'orientation': 'h', 'percentage': 50}<cr>", { desc = 'Open Tmux Runner' })
+--   vim.keymap.set('n', '<leader>tr', '<cmd>VtrResizeRunner<cr>', { desc = 'Resize Tmux Runner' })
+--   vim.keymap.set('n', '<leader>ts', '<cmd>VtrSendCommandToRunner<cr>', { desc = 'Send Command to Tmux Runner' })
+-- end
 
 -- Markdown preview (build step: `npm install` in app/, see PackChanged in init.lua)
 -- <CUSTOM CHANGE> was lazy.nvim's `init`; mkdp reads this when sourced.
