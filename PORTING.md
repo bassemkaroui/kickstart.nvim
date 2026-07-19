@@ -68,15 +68,47 @@ git diff upstream/lazy custom_config -- init.lua
 Because `custom_config` merged `upstream/lazy` in `8e6f550`, that diff is exactly
 our customizations with no upstream noise. It is 28 hunks, +600/-41.
 
-## Phase 1 — stock vim.pack baseline
+## Phase 1 — stock vim.pack baseline ✅ DONE
 
-- [ ] `git checkout upstream/master -- init.lua lua/kickstart/` in the worktree
-- [ ] Delete/park `lua/custom/plugins/init.lua` so nothing custom loads yet
-- [ ] Boot `NVIM_APPNAME=nvim-trial nvim`, let `vim.pack` install upstream's set
-- [ ] Confirm a stock kickstart works: LSP attaches, treesitter highlights, `:checkhealth` clean
-- [ ] Record startup time for reference
+- [x] `git checkout upstream/master -- init.lua lua/kickstart/ lua/custom/plugins/init.lua`
+      (`init.lua` 1549 → 983 lines; custom plugins 1215 → 13-line auto-loader)
+- [x] Nothing custom loads: `lua/custom/plugins/` holds only upstream's loader, and
+      it finds no sibling modules. Our specs stay retrievable from `custom_config`.
+- [x] Boot `NVIM_APPNAME=nvim-trial nvim` — `vim.pack` installed **19 plugins**
+- [x] Stock kickstart verified working
+- [x] Startup recorded
 
-Goal: prove `vim.pack` itself works here before adding anything of ours.
+### Results
+
+Startup, headless, three runs: **85 / 96 / 68 ms** (19 plugins).
+Not comparable to the 120–173 ms baseline yet — that config has 76 plugins.
+
+Functional checks all pass:
+
+| Check | Result |
+| ----- | ------ |
+| `#vim.pack.get()` | 19 |
+| treesitter lua parser | OK |
+| `require` telescope / conform / blink.cmp / mason / which-key / gitsigns / fidget / mini.ai | all OK |
+| `lua_ls` configured | true |
+| colorscheme | `tokyonight-night` |
+| errors on clean boot | none |
+
+11 treesitter parsers built into `~/.local/share/nvim-trial/site/parser/`.
+
+### Gotchas found (relevant to later phases)
+
+- **Headless does not block on the install prompt.** `vim.pack`'s `confirm`
+  defaults to `true`, but under `--headless` it proceeds automatically. No need to
+  pass `confirm = false` for scripted boots.
+- **Clone failures are transient and resumable.** `mini.nvim` died once with
+  `GnuTLS recv error (-24)` / `early EOF` mid-clone. Simply re-running the boot
+  installed it — `vim.pack` keeps what's already on disk. Expect this on big repos;
+  it is not a config error.
+- **Treesitter installs need a live session.** With `-c 'qa!'` nvim exits before
+  parser builds finish, so they re-download every run. Give it time:
+  `nvim --headless -c 'lua vim.wait(150000, function() return false end)' -c 'qa!'`
+- **Parsers land in `site/parser/`**, not under the plugin dir.
 
 ## Phase 2 — re-apply our `init.lua` changes (28 hunks)
 
