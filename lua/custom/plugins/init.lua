@@ -12,3 +12,4 @@
 require 'custom.plugins.ui'
 require 'custom.plugins.editor'
 require 'custom.plugins.git'
+require 'custom.plugins.python'
