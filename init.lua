@@ -92,6 +92,9 @@ do
   -- Enable faster startup by caching compiled Lua modules
   vim.loader.enable()
 
+  -- <CUSTOM CHANGE> Prepend mise shims to PATH so LSP/formatters/linters find mise-managed tools
+  vim.env.PATH = vim.env.HOME .. '/.local/share/mise/shims:' .. vim.env.PATH
+
   -- Set <space> as the leader key
   -- See `:help mapleader`
   --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
@@ -99,18 +102,21 @@ do
   vim.g.maplocalleader = ' '
 
   -- Set to true if you have a Nerd Font installed and selected in the terminal
-  vim.g.have_nerd_font = false
+  vim.g.have_nerd_font = true -- <CUSTOM CHANGE>
 
   -- [[ Setting options ]]
   --  See `:help vim.o`
   -- NOTE: You can change these options as you wish!
   --  For more options, you can see `:help option-list`
 
+  -- Hightlight a column, good to know if you reached 80 characters for example
+  vim.opt.colorcolumn = '100' -- <CUSTOM CHANGE>
+  vim.opt_local.cursorcolumn = false
   -- Make line numbers default
   vim.o.number = true
   -- You can also add relative line numbers, to help with jumping.
   --  Experiment for yourself to see if you like it!
-  -- vim.o.relativenumber = true
+  vim.o.relativenumber = true -- <CUSTOM CHANGE>
 
   -- Enable mouse mode, can be useful for resizing splits for example!
   vim.o.mouse = 'a'
@@ -122,6 +128,19 @@ do
   --  Schedule the setting after `UiEnter` because it can increase startup-time.
   --  Remove this option if you want your OS clipboard to remain independent.
   --  See `:help 'clipboard'`
+  -- <CUSTOM CHANGE>
+  -- Use OSC 52 clipboard provider (works over SSH+tmux without xclip/xsel)
+  vim.g.clipboard = {
+    name = 'OSC 52',
+    copy = {
+      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+    },
+    paste = {
+      ['+'] = require('vim.ui.clipboard.osc52').paste '+',
+      ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+    },
+  }
   vim.schedule(function() vim.o.clipboard = 'unnamedplus' end)
 
   -- Enable break indent
@@ -171,6 +190,15 @@ do
   -- instead raise a dialog asking if you wish to save the current file(s)
   -- See `:help 'confirm'`
   vim.o.confirm = true
+
+  vim.opt.termguicolors = true -- needed for nvim-notify plugin --<CUSTOM CHANGE>
+
+  -- -- Set foldmethod and foldexpr for Treesitter
+  -- vim.wo.foldmethod = 'expr'
+  -- vim.wo.foldexpr = 'v:lua.vim.treesitter.foldexpr()'
+  --
+  -- -- Optional: Set the default fold level (e.g., to not fold by default)
+  -- vim.wo.foldlevel = 99
 end
 
 -- ============================================================
@@ -184,6 +212,40 @@ do
   -- Clear highlights on search when pressing <Esc> in normal mode
   --  See `:help hlsearch`
   vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+  -- vim.opt.incsearch = true -- <CUSTOM CHANGE>
+
+  vim.keymap.set('n', '<leader>pv', vim.cmd.Ex, { desc = 'Explore files <=> :Ex' }) -- <CUSTOM CHANGE>
+  vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+  vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Keep the screen centered on the searched pattern' }) -- <CUSTOM CHANGE>
+  vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv") -- <CUSTOM CHANGE>
+  vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv") -- <CUSTOM CHANGE>
+  vim.keymap.set('n', 'J', 'mzJ`z') --<CUSTOM CHANGE>
+  vim.keymap.set('x', '<leader>p', '"_dP') --<CUSTOM CHANGE>
+  vim.keymap.set('v', '<leader>d', '"_d') --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>ra', [[:%s/\<<C-r><C-w>\>/<C-r><C-w>/gI<Left><Left><Left>]]) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>x<leader>', '<cmd>!chmod +x %<CR>', { desc = 'Make the file executable', silent = true }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>ta', function()
+    vim.opt.relativenumber = not vim.opt.relativenumber:get()
+    vim.opt.number = true
+  end, { noremap = true, silent = true, desc = '[T]oggle to [a]bsolute numbers' }) --<CUSTOM CHANGE>
+  vim.keymap.set(
+    'n',
+    '<leader>tv',
+    function() vim.opt_local.cursorcolumn = not vim.opt_local.cursorcolumn:get() end,
+    { noremap = true, silent = true, desc = '[T]oggle to [v]ertical cursor column' }
+  ) --<CUSTOM CHANGE>
+  vim.keymap.set('i', 'jj', '<Esc>') --<CUSTOM CHANGE>
+  vim.keymap.set('i', '<A-l>', '<Right>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+  vim.keymap.set('i', '<A-h>', '<Left>', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+  vim.keymap.set('i', '<A-j>', '<C-o>gj', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+  vim.keymap.set('i', '<A-k>', '<C-o>gk', { noremap = true, silent = true }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>tS', function()
+    if vim.o.laststatus == 3 then
+      vim.o.laststatus = 2
+    else
+      vim.o.laststatus = 3
+    end
+  end, { desc = '[T]oggle multi [s]tatus line' }) -- toggle multiple statusline for multiple windows
 
   -- Diagnostic Config & Keymaps
   --  See `:help vim.diagnostic.Opts`
@@ -207,6 +269,16 @@ do
         }
       end,
     },
+
+    -- -- <CUSTOM CHANGE> nerd font diagnostic signs
+    -- signs = vim.g.have_nerd_font and {
+    --   text = {
+    --     [vim.diagnostic.severity.ERROR] = '󰅚 ',
+    --     [vim.diagnostic.severity.WARN] = '󰀪 ',
+    --     [vim.diagnostic.severity.INFO] = '󰋽 ',
+    --     [vim.diagnostic.severity.HINT] = '󰌶 ',
+    --   },
+    -- } or {},
   }
 
   vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -240,6 +312,22 @@ do
   -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
   -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
+  -- -- Tab management --<CUSTOM CHANGE>
+  -- vim.keymap.set('n', '<leader>to', '<cmd>tabnew<CR>', { desc = 'Open new tab' }) --<CUSTOM CHANGE>
+  -- vim.keymap.set('n', '<leader>tx', '<cmd>tabclose<CR>', { desc = 'Close current tab' }) --<CUSTOM CHANGE>
+  -- vim.keymap.set('n', '<leader>tn', '<cmd>tabn<CR>', { desc = 'Go to next tab' }) --<CUSTOM CHANGE>
+  -- vim.keymap.set('n', '<leader>tp', '<cmd>tabp<CR>', { desc = 'Go to previous tab' }) --<CUSTOM CHANGE>
+  -- vim.keymap.set('n', '<leader>tf', '<cmd>tabnew %<CR>', { desc = 'Open current buffer in a new tab' }) --<CUSTOM CHANGE>
+
+  -- Buffer management
+  vim.keymap.set('n', '<leader>bl', '<cmd>bnext<CR>', { desc = 'Next Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bh', '<cmd>bprev<CR>', { desc = 'Previous Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bL', '<cmd>blast<CR>', { desc = 'Last Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bH', '<cmd>bfirst<CR>', { desc = 'First Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bd', '<cmd>bdelete<CR>', { desc = 'Delete Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bD', '<cmd>bdelete!<CR>', { desc = 'Force Deleting Buffer' }) --<CUSTOM CHANGE>
+  vim.keymap.set('n', '<leader>bp', '<cmd>b#<CR>', { desc = 'Go back to the previous Buffer' }) --<CUSTOM CHANGE>
+
   -- [[ Basic Autocommands ]]
   --  See `:help lua-guide-autocommands`
 
@@ -250,6 +338,55 @@ do
     desc = 'Highlight when yanking (copying) text',
     group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
     callback = function() vim.hl.on_yank() end,
+  })
+
+  -- <CUSTOM CHANGE> Python: <leader>mi appends `# type: ignore[<code>]` for mypy diagnostics on the current line
+  vim.api.nvim_create_autocmd('FileType', {
+    pattern = 'python',
+    group = vim.api.nvim_create_augroup('custom-python-mypy-ignore', { clear = true }),
+    callback = function(args)
+      vim.keymap.set('n', '<leader>mi', function()
+        local row = vim.api.nvim_win_get_cursor(0)[1]
+        local codes = {}
+        for _, d in ipairs(vim.diagnostic.get(args.buf, { lnum = row - 1 })) do
+          if d.source == 'mypy' and d.code then table.insert(codes, d.code) end
+        end
+        if #codes == 0 then
+          vim.notify('no mypy diagnostic on this line', vim.log.levels.WARN)
+          return
+        end
+        local line = vim.api.nvim_buf_get_lines(args.buf, row - 1, row, false)[1]
+        local ignore = '# type: ignore[' .. table.concat(codes, ', ') .. ']'
+
+        -- Treesitter tells us the column of the first real `#` (ignoring `#` inside string literals).
+        local ok, parser = pcall(vim.treesitter.get_parser, args.buf, 'python')
+        if not ok or not parser then
+          vim.notify('Treesitter python parser unavailable', vim.log.levels.ERROR)
+          return
+        end
+        local tree = parser:parse()[1]
+        local query = vim.treesitter.query.parse('python', '(comment) @c')
+        local first_col
+        for _, node in query:iter_captures(tree:root(), args.buf, row - 1, row) do
+          local sr, sc = node:range()
+          if sr == row - 1 and (not first_col or sc < first_col) then first_col = sc end
+        end
+
+        local code_part, trailing
+        if not first_col then
+          code_part, trailing = line:gsub('%s+$', ''), ''
+        else
+          code_part = line:sub(1, first_col):gsub('%s+$', '')
+          -- Python sees `# type: ignore[X]  # noqa: Y` as one comment token; strip the ignore chunk out of the blob
+          trailing = line:sub(first_col + 1):gsub('#%s*type:%s*ignore%[.-%]', '')
+          trailing = trailing:gsub('^%s+', ''):gsub('%s+$', ''):gsub('%s%s+', '  ')
+        end
+
+        local new_line = code_part .. '  ' .. ignore
+        if trailing ~= '' then new_line = new_line .. '  ' .. trailing end
+        vim.api.nvim_buf_set_lines(args.buf, row - 1, row, false, { new_line })
+      end, { buffer = args.buf, desc = 'Python: mypy type:ignore this line' })
+    end,
   })
 end
 

@@ -117,13 +117,13 @@ group.
 
 ### Options, keymaps, diagnostics
 
-- [ ] 1 · `84-92` (+3) — mise shims prepended to `PATH` for LSP/formatter discovery
-- [ ] 2 · `94-114` (+5/-1) — `have_nerd_font`, related globals
-- [ ] 3 · `120-138` (+13) — custom options block
-- [ ] 4 · `183-237` (+43) — `termguicolors` + options for nvim-notify etc.
-- [ ] 5 · `246-271` (+20/-1) — `vim.diagnostic.config`, incl. the `on_jump` fix
-- [ ] 6 · `299-320` (+16) — tab management keymaps
-- [ ] 7 · `327-381` (+49) — Python `<leader>mi` type-ignore helper + more keymaps
+- [x] 1 · `84-92` (+3) — mise shims prepended to `PATH` for LSP/formatter discovery
+- [x] 2 · `94-114` (+5/-1) — `have_nerd_font`, related globals
+- [x] 3 · `120-138` (+13) — custom options block
+- [x] 4 · `183-237` (+43) — `termguicolors` + options for nvim-notify etc.
+- [x] 5 · `246-271` (+20/-1) — `vim.diagnostic.config`, incl. the `on_jump` fix
+- [x] 6 · `299-320` (+16) — tab management keymaps
+- [x] 7 · `327-381` (+49) — Python `<leader>mi` type-ignore helper + more keymaps
 
 ### Plugin-adjacent config still living in `init.lua`
 
