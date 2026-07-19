@@ -22,7 +22,7 @@ return {
 
 **Examples:**
 
-- `init.lua:1008-1056` - conform.nvim with `formatters_by_ft` and `format_on_save`
+- `init.lua:1061-1120` - conform.nvim with `formatters_by_ft` and `format_on_save`
 - `lua/kickstart/plugins/lint.lua` - nvim-lint with `linters_by_ft` and `try_lint` autocmd
 - `lua/custom/plugins/init.lua:1-50` - toggleterm with opts pattern
 - `lua/custom/plugins/init.lua:165-220` - harpoon v2 with complex config
@@ -57,13 +57,16 @@ return {
 
 Two-layer approach:
 
-1. **Conform.nvim** (primary): `init.lua:1008-1056`
+1. **Conform.nvim** (primary): `init.lua:1061-1120`
 
     - Per-filetype mapping via `formatters_by_ft` (lua, python, markdown, json, html, yaml, sh/bash/zsh, terraform)
-    - Format on save via `format_on_save` (disabled for C/C++)
+    - Format on save via `format_on_save` — an **allow-list** (`enabled_filetypes`) mirroring the `formatters_by_ft` keys; any filetype not listed is not formatted on save. Keep the two lists in sync when adding a formatter. Upstream kickstart ships `enabled_filetypes` empty, so re-check it after merging upstream
     - Formatter option overrides via `formatters` (e.g. `shfmt.prepend_args = { '-i', '4' }`)
+    - `default_format_opts = { lsp_format = 'fallback' }` applies to every conform call, so `format()` callers don't repeat it
 
 2. **LSP fallback**: `require('conform').format { lsp_format = 'fallback' }` — when no conform formatter is registered for a filetype, delegates to `vim.lsp.buf.format` (e.g. ruff LSP handles Python formatting if the conform entry is absent)
+
+**Single formatter per filetype:** `lua_ls` has its formatter switched off (`documentFormattingProvider = false` in `on_init`, plus `settings.Lua.format.enable = false`) so stylua-via-conform is the only thing that formats Lua. Without this, the LSP fallback and conform can both claim a Lua buffer.
 
 ## Linting Pipeline
 

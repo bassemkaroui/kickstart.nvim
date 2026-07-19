@@ -72,6 +72,8 @@ Leader key: `<Space>`
 | `<leader>g` | Git operations             |
 | `<leader>x` | Trouble diagnostics        |
 
+**Text objects (mini.ai):** next/last objects are remapped to `aa` / `ii` (not mini.ai's default `an` / `in`), leaving `an` / `in` to Neovim 0.12's built-in treesitter incremental selection. So it's `yiiq`, not `yinq`, to yank inside the next quote. See `init.lua:1322`.
+
 See `init.lua:181-266` for full keymap definitions.
 
 ## Essential Commands
@@ -91,7 +93,7 @@ See `init.lua:181-266` for full keymap definitions.
 
 - **Lua**: StyLua (160 char width, 2-space indent)
 - **Python**: Ruff (100 char width, isort, type checking)
-- **Format on save**: Enabled via Conform.nvim
+- **Format on save**: Enabled via Conform.nvim, for an explicit allow-list of filetypes (see `enabled_filetypes` in `init.lua:1081`)
 
 ## Custom Change Markers
 
