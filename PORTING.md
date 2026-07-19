@@ -143,6 +143,20 @@ group.
 
 ### Formatting / completion
 
+> **⚠ Decision needed before hunk 19 — stylua would run twice.**
+> Upstream/master keeps `stylua = {}` in the `servers` table, which runs stylua
+> as an **LSP formatter** (upstream commit `459b868`). Verified: opening a Lua
+> file in a real project attaches `lua_ls, stylua`.
+> Our hunk 19 also puts `lua = { 'stylua' }` in conform's `formatters_by_ft`.
+> Keeping both means two things can format the same Lua buffer. Pick one:
+> - **(a)** drop `lua = { 'stylua' }` from conform, let the stylua LSP own Lua
+>   (upstream's design; `default_format_opts.lsp_format = 'fallback'` routes to it)
+> - **(b)** remove `stylua = {}` from `servers`, keep conform's stylua
+>   (matches what `custom_config` does today)
+>
+> `lua_ls` formatting is already disabled either way, so this is only about
+> stylua-as-LSP vs stylua-via-conform.
+
 - [ ] 17 · `1036-1065` (+20/-1) — conform setup
 - [ ] 18 · `1085-1103` (+12/-2) — `format_on_save` allow-list (`enabled_filetypes`)
 - [ ] 19 · `1110-1129` (+14/-6) — `formatters_by_ft` + `shfmt` args
