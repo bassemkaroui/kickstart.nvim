@@ -13,6 +13,8 @@ vim.pack.add {
 }
 
 vim.keymap.set('n', '<leader>na', '<cmd>Telescope notify<CR>', { desc = 'Show [a]ll [n]otifications' })
+-- <CUSTOM CHANGE> not in custom_config: register the extension explicitly so <leader>na
+-- works without relying on `:Telescope notify` autoloading it.
 pcall(require('telescope').load_extension, 'notify')
 
 -- require('notify').setup {
