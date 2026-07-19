@@ -240,10 +240,9 @@ Boot after each batch.
 
 Port everything eager first, then re-measure against the 120–173 ms baseline.
 
-**Only then** decide what to defer. `vim.pack` has no `event`/`ft`/`cmd`/`keys`
-system — only a `load` option (boolean, or a function that is "fully responsible
-for loading plugin", per `:help pack.txt`). Reproducing our current setup by hand
-means writing trigger logic for **94 distinct triggers**:
+`vim.pack` has no `event`/`ft`/`cmd`/`keys` system — only a `load` option
+(boolean, or a function "fully responsible for loading plugin", per
+`:help pack.txt`). Our current setup uses **94 distinct triggers**:
 
 | Trigger type | Distinct triggers |
 | ------------ | ----------------- |
@@ -252,12 +251,86 @@ means writing trigger logic for **94 distinct triggers**:
 | `event`      | 6                 |
 | `ft`         | 5                 |
 
-- [ ] Measure eager-everything startup
-- [ ] If within ~2x baseline: **stop**, ship it eager
-- [ ] If slow: defer only the measured-worst offenders, not all 54
+### Prior art (checked 2026-07-19)
 
-Candidate first deferrals if needed: `harpoon`, `schemastore.nvim`, `yazi.nvim`,
-`markdown-preview.nvim`, `remote-nvim.nvim`, the DAP stack.
+- **Kickstart itself dropped lazy-loading.** The migration author, `oriori1703`,
+  in [kickstart#1630](https://github.com/nvim-lua/kickstart.nvim/issues/1630):
+  *"I'm experimenting with migrating to `vim.pack` despite the missing lazy
+  loading functionality."* Upstream has no answer to copy — [PR #2005](https://github.com/nvim-lua/kickstart.nvim/pull/2005)
+  simply doesn't lazy-load.
+- **The vim.pack author advises restraint.** echasnovski's
+  [guide](https://echasnovski.com/blog/2026-03-13-a-guide-to-vim-pack):
+  *"vim.pack is designed with lazy loading in mind, but definitely not as a front
+  and center use case. Use it moderately."* and warns that *"extreme lazy loading
+  usually comes with a hidden cognitive overhead both when using and maintaining
+  the config."* He frames two useful modes: **load-not-during-startup** (cheap,
+  big win) vs **load-just-before-needed** (expensive, marginal win).
+- **A real 72-plugin migration got *faster* without per-trigger lazy-loading.**
+  [Fredrik Averpil](https://fredrikaverpil.github.io/blog/2026/04/15/from-lazy.nvim-to-vim.pack/)
+  abandoned `event`/`ft`/`cmd`/`keys` entirely, deferred everything behind
+  `VimEnter` via a small queue, and reports **40 ms with 72 plugins** — *"actually
+  starts up faster than with lazy.nvim."* Our config is 76 plugins at 120–173 ms,
+  so this is a directly comparable datapoint.
+- **Neovim core has no lazy-loading on the roadmap.** [#34763](https://github.com/neovim/neovim/issues/34763)
+  is the `vim.pack` tracking issue; nothing there adds declarative triggers.
+
+### Three options, cheapest first
+
+**Option A — defer everything past startup (recommended).** No per-plugin
+triggers at all. Colorscheme and anything affecting first draw loads eagerly;
+everything else goes behind `vim.schedule()` or a `VimEnter` queue:
+
+```lua
+vim.schedule(function()
+  vim.pack.add { 'https://github.com/...' }
+end)
+```
+
+This is echasnovski's "load not during startup" mode and what Averpil shipped.
+It replaces all 94 triggers with roughly one mechanism.
+
+**Option B — `lz.n` for declarative triggers.** [lumen-oss/lz.n](https://github.com/lumen-oss/lz.n)
+supports `keys`/`ft`/`cmd`/`event`/`colorscheme` with a spec shape close to
+lazy.nvim's, and plugs into vim.pack as a `load` function:
+
+```lua
+vim.pack.add { 'https://github.com/lumen-oss/lz.n' }
+vim.pack.add({
+  { src = 'https://github.com/nvim-telescope/telescope.nvim', data = { cmd = 'Telescope' } },
+}, { load = require('lz.n').load })
+```
+
+Requires Neovim >= 0.12 (we're on 0.12.2). **Caveat that matters for us:** until
+[neovim#35550](https://github.com/neovim/neovim/issues/35550) is fixed (still open
+as of 2026-07-19 — `nvim_exec_autocmds` rejects mixed list/map tables), `keys`
+cannot be passed through vim.pack's `data` field, so key specs must be registered
+via a direct `require('lz.n').load { ... }` call instead. Since `keys` is 65 of
+our 94 triggers, that workaround is the common path, not an edge case.
+
+**Option C — hand-written autocmds/keymap stubs per trigger.** ~5–10 lines of
+boilerplate × 94, with edge cases around visual-mode maps, expr maps, which-key
+registration, and buffer-local scope. Only worth it for a handful of plugins that
+Options A and B can't cover.
+
+### Decision procedure
+
+- [ ] Measure eager-everything startup
+- [ ] If within ~2× baseline: **stop**, ship it eager (Option A already applied)
+- [ ] If slow: apply Option A broadly, re-measure
+- [ ] Only if *specific* plugins still hurt: Option B for those, or C as last resort
+
+Candidate first deferrals if needed: `harpoon` (5.9 ms), `schemastore.nvim`
+(4.2 ms), `yazi.nvim` (2.5 ms), `markdown-preview.nvim`, `remote-nvim.nvim`, the
+DAP stack.
+
+### Other things lazy.nvim did that nobody's library replaces
+
+Per Averpil's writeup, budget for these regardless of which option we pick:
+
+- [ ] **Cross-plugin config.** No dependency graph in `vim.pack`; he used a
+      `_G.Config` registry with deep-merge to share settings between plugins.
+- [ ] **Ordering.** `vim.pack.add` loads in list order — dependencies go first, by hand.
+- [ ] **`build` steps.** Wire `PackChanged` autocmds manually.
 
 ## Done criteria
 
