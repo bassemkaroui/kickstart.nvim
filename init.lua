@@ -482,6 +482,27 @@ do
       end
     end,
   })
+
+  -- <CUSTOM CHANGE> `:Lazy`-style entry points for vim.pack.
+  --  Both open the same confirmation buffer (`:w` to confirm, `:q` to discard,
+  --  `]]`/`[[` to navigate, `K` for details, `gra` for per-plugin actions).
+  local function pack_names()
+    return vim.tbl_map(function(p) return p.spec.name end, vim.pack.get())
+  end
+
+  vim.api.nvim_create_user_command('PackList', function() vim.pack.update(nil, { offline = true }) end, {
+    desc = 'List installed plugins (vim.pack, no network)',
+  })
+
+  vim.api.nvim_create_user_command('PackUpdate', function(opts)
+    local names = #opts.fargs > 0 and opts.fargs or nil
+    vim.pack.update(names, { force = opts.bang })
+  end, {
+    desc = 'Update plugins (vim.pack); ! skips the confirmation buffer',
+    nargs = '*',
+    bang = true,
+    complete = function(arg_lead) return vim.tbl_filter(function(n) return vim.startswith(n, arg_lead) end, pack_names()) end,
+  })
 end
 
 ---Because most plugins are hosted on GitHub, you can use the helper
