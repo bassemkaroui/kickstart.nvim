@@ -3,11 +3,10 @@
 --
 -- See the kickstart.nvim README for more information
 
--- Iterate over all Lua files in the plugins directory and load them
-local plugins_dir = vim.fs.joinpath(vim.fn.stdpath 'config', 'lua', 'custom', 'plugins')
-for file_name, type in vim.fs.dir(plugins_dir, { follow = true }) do
-  if (type == 'file' or type == 'link') and file_name:match '%.lua$' and file_name ~= 'init.lua' then
-    local module = file_name:gsub('%.lua$', '')
-    require('custom.plugins.' .. module)
-  end
-end
+-- <CUSTOM CHANGE> Upstream ships an auto-loader that iterates this directory with
+-- `vim.fs.dir`. That iteration order is filesystem order, not sorted, so it cannot
+-- express load order -- and `vim.pack.add` IS order-sensitive (there is no dependency
+-- graph, unlike lazy.nvim). See nvim-lua/kickstart.nvim#2038.
+--
+-- We therefore require our modules explicitly, in dependency order.
+require 'custom.plugins.ui'
