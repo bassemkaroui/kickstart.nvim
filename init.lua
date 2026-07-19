@@ -891,14 +891,180 @@ do
     end,
   })
 
+  -- <CUSTOM CHANGE> schemastore must be on the runtimepath *before* the `servers` table below is
+  -- constructed, because the `jsonls` entry calls `require('schemastore')` at construction time.
+  -- lazy.nvim resolved this via `dependencies`; vim.pack.add is ordered, so we add it up front.
+  vim.pack.add { gh 'b0o/schemastore.nvim' }
+
   -- Enable the following language servers
   --  Feel free to add/remove any LSPs that you want here. They will automatically be installed.
   --  See `:help lsp-config` for information about keys and how to configure
   ---@type table<string, vim.lsp.Config>
   local servers = {
+    -- <CUSTOM CHANGE> our full server set begins here (through `yamlls`)
+    -- isort = {},
+    -- black = {},
+    -- pylint = {},
+    prettier = {}, -- <CUSTOM CHANGE> not an LSP; listed so mason-tool-installer installs it (same trick upstream uses for `stylua`)
+    jsonls = {
+      settings = {
+        json = {
+          schemas = require('schemastore').json.schemas(),
+          -- schemas = vim.list_extend(
+          --   require('schemastore').json.schemas(), --  Load all known schemas
+          --   {
+          --     {
+          --       fileMatch = { '.renovaterc', '.renovaterc.json' },
+          --       url = 'https://docs.renovatebot.com/renovate-schema.json',
+          --     },
+          --   }
+          -- ),
+          validate = { enable = true },
+          -- resultLimit = 10000, -- Optional: avoid missing large schemas
+        },
+      },
+      filetypes = { 'json', 'jsonc', 'json5' },
+    },
+    -- taplo = {},
+    ruff = {},
+    bashls = {},
+    -- pylsp = {
+    --   settings = {
+    --     -- configurationSources = { 'flake8' },
+    --     pylsp = {
+    --       plugins = {
+    --         ruff = {
+    --           enabled = true,
+    --           formatEnabled = true,
+    --           config = '~/.config/ruff/ruff.toml',
+    --           format = { 'I', 'F541' },
+    --           unsafeFixes = true,
+    --         },
+    --         pycodestyle = { enabled = false },
+    --         mccabe = { enabled = false },
+    --         pyflakes = { enabled = false },
+    --         autopep8 = { enabled = false },
+    --         flake8 = { enabled = false },
+    --         isort = { enabled = false },
+    --         black = { enabled = false },
+    --         pylsp_rope = { enabled = false },
+    --         pylint = { enabled = false },
+    --         yapf = { enabled = false },
+    --         pylsp_mypy = {
+    --           enabled = true,
+    --           dmypy = true,
+    --           live_mode = false,
+    --           report_progress = true,
+    --           overrides = {
+    --             true,
+    --             '--ignore-missing-imports', -- Add the same flag you would use in mypy.ini
+    --           },
+    --         },
+    --       },
+    --     },
+    --   },
+    -- },
+    -- basedpyright = {
+    --   settings = {
+    --     basedpyright = {
+    --       disableOrganizeImports = true,
+    --       disableTaggedHints = true,
+    --       analysis = {
+    --         autoSearchPaths = true,
+    --         diagnosticMode = 'openFilesOnly',
+    --         useLibraryCodeForTypes = true,
+    --         inlayHints = { callArgumentNames = true },
+    --         typeCheckingMode = 'off',
+    --       },
+    --     },
+    --   },
+    -- },
+    pyright = {},
+    -- pyright = {
+    --   -- -- autostart = false,
+    --   -- on_attach = function(client, bufnr)
+    --   --   if client.name == 'pyright' then
+    --   --     -- Disable auto-completion
+    --   --     -- client.server_capabilities.completionProvider = nil
+    --   --     client.server_capabilities.completionProvider = nil
+    --   --
+    --   --     -- Disable code navigation capabilities
+    --   --     client.server_capabilities.definitionProvider = false
+    --   --     client.server_capabilities.declarationProvider = false
+    --   --     client.server_capabilities.implementationProvider = false
+    --   --     client.server_capabilities.referencesProvider = false
+    --   --     client.server_capabilities.documentSymbolProvider = false
+    --   --     client.server_capabilities.workspaceSymbolProvider = false
+    --   --     client.server_capabilities.typeDefinitionProvider = false
+    --   --     client.server_capabilities.signatureHelpProvider = false
+    --   --     client.server_capabilities.renameProvider = false
+    --   --     client.server_capabilities.codeActionProvider = false
+    --   --     client.server_capabilities.formattingProvider = false
+    --   --     -- client.server_capabilities.documentHighlightProvider = false
+    --   --     client.server_capabilities.semanticTokensProvider = false
+    --   --
+    --   --     -- Leave hoverProvider enabled so that 'K' shows type info
+    --   --     client.server_capabilities.hoverProvider = true
+    --   --   end
+    --   -- end,
+    --   settings = {
+    --     pyright = {
+    --       disableOrganizeImports = true,
+    --       disableTaggedHints = true,
+    --     },
+    --     python = {
+    --       analysis = {
+    --         autoSearchPaths = true,
+    --         diagnosticMode = 'openFilesOnly', -- Disables diagnostics
+    --         diagnosticSeverityOverrides = {
+    --           --   reportMissingModuleSource = 'none',
+    --           --   reportMissingImports = 'none',
+    --           reportUndefinedVariable = 'none',
+    --         },
+    --         useLibraryCodeForTypes = true,
+    --         typeCheckingMode = 'off',
+    --       },
+    --     },
+    --   },
+    -- },
+    ansiblels = {},
+    docker_compose_language_service = {},
+    dockerls = {},
+    gitlab_ci_ls = {},
+    -- grammarly = {},
+    helm_ls = {},
+    jqls = {},
+    markdown_oxide = {},
+    -- pylyzer = {},
+    sqlls = {},
+    yamlls = {
+      settings = {
+        yaml = {
+          schemas = {
+            ['https://raw.githubusercontent.com/yannh/kubernetes-json-schema/master/v1.34.1-standalone-strict/all.json'] = {
+              '**/*.k8s.{yml,yaml}',
+              'k8s/**/*.{yml,yaml}',
+              'manifests/**/*.{yml,yaml}',
+            },
+            ['https://json.schemastore.org/github-workflow.json'] = '/.github/workflows/*',
+            ['https://json.schemastore.org/pre-commit-config.json'] = '/.pre-commit-config.yaml',
+            ['https://json.schemastore.org/gitlab-ci'] = '*gitlab-ci*.{yml,yaml}',
+            ['http://json.schemastore.org/ansible-playbook'] = '*play*.{yml,yaml}',
+            ['http://json.schemastore.org/chart'] = 'Chart.{yml,yaml}',
+            ['https://json.schemastore.org/dependabot-v2'] = '.github/dependabot.{yml,yaml}',
+            ['https://raw.githubusercontent.com/compose-spec/compose-spec/master/schema/compose-spec.json'] = {
+              '*docker-compose*.{yml,yaml}',
+              '*compose*.{yml,yaml}',
+            },
+            ['https://raw.githubusercontent.com/argoproj/argo-workflows/master/api/jsonschema/schema.json'] = '*flow*.{yml,yaml}',
+            -- ['http://json.schemastore.org/kustomization'] = 'kustomization.{yml,yaml}',
+          },
+        },
+      },
+    },
+    -- <CUSTOM CHANGE> end of our server set
     -- clangd = {},
     -- gopls = {},
-    -- pyright = {},
     -- rust_analyzer = {},
     --
     -- Some languages (like typescript) have entire language plugins that can be useful:
@@ -949,7 +1115,7 @@ do
     gh 'mason-org/mason.nvim',
     gh 'mason-org/mason-lspconfig.nvim',
     gh 'WhoIsSethDaniel/mason-tool-installer.nvim',
-    gh 'b0o/schemastore.nvim', -- <CUSTOM CHANGE> JSON/YAML schemas, consumed by the jsonls config (hunk 16)
+    -- NOTE: schemastore.nvim is added earlier, above the `servers` table -- see the <CUSTOM CHANGE> note there
   }
 
   -- Automatically install LSPs and related tools to stdpath for Neovim

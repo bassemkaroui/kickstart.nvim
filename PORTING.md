@@ -138,7 +138,7 @@ group.
 
 ### LSP — the big one
 
-- [ ] 16 · `820-987` (**+160**/-1) — full LSP server table (pyright, ruff, lua_ls,
+- [x] 16 · `820-987` (**+160**/-1) — full LSP server table (pyright, ruff, lua_ls,
       bashls, jsonls, yamlls, ansible, docker, gitlab-ci, helm, sql, markdown)
 
 ### Formatting / completion
