@@ -39,12 +39,14 @@ require('treesitter-context').setup { multiline_threshold = 1 }
 -- Floating terminal
 vim.pack.add { { src = gh 'akinsho/toggleterm.nvim', version = vim.version.range '*' } }
 require('toggleterm').setup {
-  size = 20, -- float size in lines (or function)
   open_mapping = [[<A-t>]], -- your toggle key
   direction = 'float', -- float | split | tab
   float_opts = { -- only for float
     border = 'curved', -- single|double|rounded|curved|none
     winblend = 0, -- transparency
+    -- numbers are absolute cells, so use functions for a % of the editor (re-evaluated on each open)
+    width = function() return math.floor(vim.o.columns * 1) end,
+    height = function() return math.floor(vim.o.lines * 1) end,
   },
   start_in_insert = true, -- auto-enter insert
   persist_size = true, -- remember last size
